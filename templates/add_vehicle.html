@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Add Vehicle - Garbage Collection & Disposal Firm{% endblock %}
+
+{% block page_title %}Add New Vehicle{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-truck me-2"></i>Vehicle Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_vehicle') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="vehicle_number" class="form-label">Vehicle Number *</label>
+                            <input type="text" class="form-control" id="vehicle_number" name="vehicle_number" placeholder="e.g., GC-001" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="vehicle_type" class="form-label">Vehicle Type *</label>
+                            <select class="form-select" id="vehicle_type" name="vehicle_type" required>
+                                <option value="">Select vehicle type...</option>
+                                <option value="truck">Garbage Truck</option>
+                                <option value="compactor">Compactor Truck</option>
+                                <option value="van">Van</option>
+                                <option value="pickup">Pickup Truck</option>
+                                <option value="special">Special Equipment</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="capacity" class="form-label">Capacity *</label>
+                            <select class="form-select" id="capacity" name="capacity" required>
+                                <option value="">Select capacity...</option>
+                                <option value="Small (2-3 tons)">Small (2-3 tons)</option>
+                                <option value="Medium (5-8 tons)">Medium (5-8 tons)</option>
+                                <option value="Large (10-15 tons)">Large (10-15 tons)</option>
+                                <option value="Extra Large (20+ tons)">Extra Large (20+ tons)</option>
+                                <option value="Special">Special Capacity</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="driver_name" class="form-label">Assigned Driver</label>
+                            <input type="text" class="form-control" id="driver_name" name="driver_name" placeholder="Driver's name">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="manufacturer" class="form-label">Manufacturer</label>
+                            <input type="text" class="form-control" id="manufacturer" name="manufacturer" placeholder="e.g., Mack, Volvo">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="model_year" class="form-label">Model Year</label>
+                            <input type="number" class="form-control" id="model_year" name="model_year" min="1990" max="2025" placeholder="2020">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="notes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Special features, maintenance notes, or other important information..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('vehicles') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Vehicles
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Add Vehicle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Vehicle Types
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Standard Vehicles</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Garbage Truck:</strong> Standard waste collection vehicle</li>
+                            <li><strong>Compactor Truck:</strong> For compacting waste on-site</li>
+                            <li><strong>Van:</strong> For small collections and special services</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Specialized Vehicles</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Pickup Truck:</strong> For small jobs and equipment transport</li>
+                            <li><strong>Special Equipment:</strong> Custom vehicles for specific needs</li>
+                            <li><strong>Recycling Truck:</strong> Dedicated recycling collection</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('form');
+    const vehicleNumberInput = document.getElementById('vehicle_number');
+    const vehicleTypeSelect = document.getElementById('vehicle_type');
+    const capacitySelect = document.getElementById('capacity');
+    
+    // Vehicle number validation
+    vehicleNumberInput.addEventListener('blur', function() {
+        const vehicleNumber = this.value.trim();
+        if (vehicleNumber && vehicleNumber.length < 3) {
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+    
+    // Auto-fill capacity based on vehicle type
+    vehicleTypeSelect.addEventListener('change', function() {
+        const capacities = {
+            'truck': 'Large (10-15 tons)',
+            'compactor': 'Extra Large (20+ tons)',
+            'van': 'Small (2-3 tons)',
+            'pickup': 'Small (2-3 tons)',
+            'special': 'Special'
+        };
+        
+        if (this.value && capacities[this.value]) {
+            capacitySelect.value = capacities[this.value];
+        }
+    });
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+});
+</script>
+{% endblock %} 

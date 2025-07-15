@@ -1,0 +1,518 @@
+{% extends "base.html" %}
+
+{% block title %}Invoices - EcoClean Waste Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-primary">
+                        <i class="fas fa-file-invoice me-2"></i>Invoices
+                    </h1>
+                    <p class="text-muted mb-0">Manage customer invoices and billing</p>
+                </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                    <i class="fas fa-plus me-2"></i>Create Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-file-invoice text-primary fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Total Invoices</h6>
+                            <h4 class="mb-0 text-primary">{{ invoices|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-check-circle text-success fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Paid Invoices</h6>
+                            <h4 class="mb-0 text-success">{{ invoices|selectattr('status', 'equalto', 'paid')|list|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-clock text-warning fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Pending</h6>
+                            <h4 class="mb-0 text-warning">{{ invoices|selectattr('status', 'equalto', 'pending')|list|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-danger bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-exclamation-triangle text-danger fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Overdue</h6>
+                            <h4 class="mb-0 text-danger">{{ invoices|selectattr('status', 'equalto', 'overdue')|list|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Revenue Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="border-end">
+                                <h4 class="text-primary mb-1">${{ "%.2f"|format(total_revenue|default(0)) }}</h4>
+                                <small class="text-muted">Total Revenue</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="border-end">
+                                <h4 class="text-success mb-1">${{ "%.2f"|format(paid_revenue|default(0)) }}</h4>
+                                <small class="text-muted">Paid Revenue</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="border-end">
+                                <h4 class="text-warning mb-1">${{ "%.2f"|format(pending_revenue|default(0)) }}</h4>
+                                <small class="text-muted">Pending Revenue</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div>
+                                <h4 class="text-danger mb-1">${{ "%.2f"|format(overdue_revenue|default(0)) }}</h4>
+                                <small class="text-muted">Overdue Revenue</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="statusFilter" class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="paid">Paid</option>
+                                <option value="pending">Pending</option>
+                                <option value="overdue">Overdue</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="customerFilter" class="form-label">Customer</label>
+                            <select class="form-select" id="customerFilter">
+                                <option value="">All Customers</option>
+                                {% for customer in customers %}
+                                <option value="{{ customer.id }}">{{ customer.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="dateRangeFilter" class="form-label">Date Range</label>
+                            <select class="form-select" id="dateRangeFilter">
+                                <option value="">All Dates</option>
+                                <option value="this_month">This Month</option>
+                                <option value="last_month">Last Month</option>
+                                <option value="this_quarter">This Quarter</option>
+                                <option value="this_year">This Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="amountFilter" class="form-label">Amount Range</label>
+                            <select class="form-select" id="amountFilter">
+                                <option value="">All Amounts</option>
+                                <option value="0-500">$0 - $500</option>
+                                <option value="500-1000">$500 - $1,000</option>
+                                <option value="1000-5000">$1,000 - $5,000</option>
+                                <option value="5000+">$5,000+</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Invoice List</h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportInvoices()">
+                                <i class="fas fa-download me-2"></i>Export
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printInvoices()">
+                                <i class="fas fa-print me-2"></i>Print
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="invoicesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Customer</th>
+                                    <th>Contract</th>
+                                    <th>Invoice Date</th>
+                                    <th>Due Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Payment Method</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in invoices %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ invoice.invoice_number }}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                <i class="fas fa-user text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ invoice.customer.name }}</div>
+                                                <small class="text-muted">{{ invoice.customer.customer_type }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info bg-opacity-10 text-info">
+                                            {{ invoice.contract.contract_number }}
+                                        </span>
+                                    </td>
+                                    <td>{{ invoice.invoice_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="{% if invoice.due_date < today %}text-danger{% endif %}">
+                                            {{ invoice.due_date.strftime('%Y-%m-%d') }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>${{ "%.2f"|format(invoice.total_amount) }}</strong>
+                                            {% if invoice.discount_amount > 0 %}
+                                            <br><small class="text-success">-${{ "%.2f"|format(invoice.discount_amount) }} discount</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if invoice.status == 'paid' %}
+                                        <span class="badge bg-success">Paid</span>
+                                        {% elif invoice.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% elif invoice.status == 'overdue' %}
+                                        <span class="badge bg-danger">Overdue</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ invoice.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if invoice.payment_method %}
+                                        <span class="badge bg-light text-dark">{{ invoice.payment_method|title }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewInvoice({{ invoice.id }})" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="editInvoice({{ invoice.id }})" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="markAsPaid({{ invoice.id }})" title="Mark as Paid">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="sendReminder({{ invoice.id }})" title="Send Reminder">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Invoice Modal -->
+<div class="modal fade" id="addInvoiceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>Create New Invoice
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_invoice') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="customer_id" class="form-label">Customer</label>
+                            <select class="form-select" id="customer_id" name="customer_id" required>
+                                <option value="">Select Customer</option>
+                                {% for customer in customers %}
+                                <option value="{{ customer.id }}">{{ customer.name }} ({{ customer.customer_type }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="contract_id" class="form-label">Contract</label>
+                            <select class="form-select" id="contract_id" name="contract_id" required>
+                                <option value="">Select Contract</option>
+                                {% for contract in contracts %}
+                                <option value="{{ contract.id }}">{{ contract.contract_number }} - {{ contract.customer.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="invoice_number" class="form-label">Invoice Number</label>
+                            <input type="text" class="form-control" id="invoice_number" name="invoice_number" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="invoice_date" class="form-label">Invoice Date</label>
+                            <input type="date" class="form-control" id="invoice_date" name="invoice_date" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="payment_terms" class="form-label">Payment Terms</label>
+                            <select class="form-select" id="payment_terms" name="payment_terms">
+                                <option value="Net 30">Net 30</option>
+                                <option value="Net 60">Net 60</option>
+                                <option value="Net 90">Net 90</option>
+                                <option value="Immediate">Immediate</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="subtotal" class="form-label">Subtotal ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="subtotal" name="subtotal" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="tax_amount" class="form-label">Tax Amount ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="tax_amount" name="tax_amount" value="0.00">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="discount_amount" class="form-label">Discount Amount ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="discount_amount" name="discount_amount" value="0.00">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Enter any additional notes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Create Invoice
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Details Modal -->
+<div class="modal fade" id="invoiceDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-invoice me-2"></i>Invoice Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="invoiceDetailsContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewInvoice(invoiceId) {
+    // Load invoice details via AJAX
+    fetch(`/api/invoices/${invoiceId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('invoiceDetailsContent').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Invoice Information</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Invoice #:</strong></td><td>${data.invoice_number}</td></tr>
+                            <tr><td><strong>Customer:</strong></td><td>${data.customer_name}</td></tr>
+                            <tr><td><strong>Contract:</strong></td><td>${data.contract_number}</td></tr>
+                            <tr><td><strong>Invoice Date:</strong></td><td>${data.invoice_date}</td></tr>
+                            <tr><td><strong>Due Date:</strong></td><td>${data.due_date}</td></tr>
+                            <tr><td><strong>Status:</strong></td><td><span class="badge bg-${data.status === 'paid' ? 'success' : data.status === 'pending' ? 'warning' : 'danger'}">${data.status}</span></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Financial Details</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Subtotal:</strong></td><td>$${data.subtotal}</td></tr>
+                            <tr><td><strong>Tax Amount:</strong></td><td>$${data.tax_amount}</td></tr>
+                            <tr><td><strong>Discount:</strong></td><td>$${data.discount_amount}</td></tr>
+                            <tr><td><strong>Total Amount:</strong></td><td><strong>$${data.total_amount}</strong></td></tr>
+                            <tr><td><strong>Payment Method:</strong></td><td>${data.payment_method || 'Not specified'}</td></tr>
+                            <tr><td><strong>Payment Date:</strong></td><td>${data.payment_date || 'Not paid'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+                ${data.notes ? `<div class="mt-3"><h6 class="text-primary">Notes</h6><p>${data.notes}</p></div>` : ''}
+            `;
+            new bootstrap.Modal(document.getElementById('invoiceDetailsModal')).show();
+        });
+}
+
+function editInvoice(invoiceId) {
+    // Implement edit functionality
+    console.log('Edit invoice:', invoiceId);
+}
+
+function markAsPaid(invoiceId) {
+    if (confirm('Mark this invoice as paid?')) {
+        // Implement mark as paid functionality
+        console.log('Mark as paid:', invoiceId);
+    }
+}
+
+function sendReminder(invoiceId) {
+    if (confirm('Send payment reminder for this invoice?')) {
+        // Implement send reminder functionality
+        console.log('Send reminder:', invoiceId);
+    }
+}
+
+function exportInvoices() {
+    // Implement export functionality
+    console.log('Export invoices');
+}
+
+function printInvoices() {
+    // Implement print functionality
+    window.print();
+}
+
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const statusFilter = document.getElementById('statusFilter');
+    const customerFilter = document.getElementById('customerFilter');
+    const dateRangeFilter = document.getElementById('dateRangeFilter');
+    const amountFilter = document.getElementById('amountFilter');
+    
+    function filterInvoices() {
+        const status = statusFilter.value;
+        const customer = customerFilter.value;
+        const dateRange = dateRangeFilter.value;
+        const amount = amountFilter.value;
+        
+        // Implement filtering logic
+        console.log('Filtering:', { status, customer, dateRange, amount });
+    }
+    
+    statusFilter.addEventListener('change', filterInvoices);
+    customerFilter.addEventListener('change', filterInvoices);
+    dateRangeFilter.addEventListener('change', filterInvoices);
+    amountFilter.addEventListener('change', filterInvoices);
+});
+</script>
+
+<style>
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+</style>
+{% endblock %} 

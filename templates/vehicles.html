@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Vehicles - Garbage Collection & Disposal Firm{% endblock %}
+
+{% block page_title %}Fleet Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h4><i class="fas fa-truck me-2"></i>Vehicle Fleet</h4>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('add_vehicle') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Vehicle
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-truck fa-2x mb-2"></i>
+                <h5>{{ vehicles|selectattr('status', 'equalto', 'available')|list|length }}</h5>
+                <small>Available</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-truck-loading fa-2x mb-2"></i>
+                <h5>{{ vehicles|selectattr('status', 'equalto', 'in_use')|list|length }}</h5>
+                <small>In Use</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-tools fa-2x mb-2"></i>
+                <h5>{{ vehicles|selectattr('status', 'equalto', 'maintenance')|list|length }}</h5>
+                <small>Maintenance</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-truck-moving fa-2x mb-2"></i>
+                <h5>{{ vehicles|length }}</h5>
+                <small>Total Fleet</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>All Vehicles
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if vehicles %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Vehicle</th>
+                        <th>Type</th>
+                        <th>Capacity</th>
+                        <th>Driver</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vehicle in vehicles %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                    <i class="fas fa-truck text-white"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ vehicle.vehicle_number }}</strong>
+                                    <br>
+                                    <small class="text-muted">ID: {{ vehicle.id }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ vehicle.vehicle_type }}</span>
+                        </td>
+                        <td>{{ vehicle.capacity }}</td>
+                        <td>
+                            {% if vehicle.driver_name %}
+                                <span class="text-success">{{ vehicle.driver_name }}</span>
+                            {% else %}
+                                <span class="text-muted">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if vehicle.status == 'available' %}
+                                <span class="badge bg-success">Available</span>
+                            {% elif vehicle.status == 'in_use' %}
+                                <span class="badge bg-warning">In Use</span>
+                            {% else %}
+                                <span class="badge bg-danger">Maintenance</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#vehicleModal{{ vehicle.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-tools"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Vehicle Detail Modal -->
+                    <div class="modal fade" id="vehicleModal{{ vehicle.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Vehicle Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Vehicle Information</h6>
+                                            <p><strong>Vehicle Number:</strong> {{ vehicle.vehicle_number }}</p>
+                                            <p><strong>Type:</strong> {{ vehicle.vehicle_type }}</p>
+                                            <p><strong>Capacity:</strong> {{ vehicle.capacity }}</p>
+                                            <p><strong>Status:</strong> 
+                                                {% if vehicle.status == 'available' %}
+                                                    <span class="badge bg-success">Available</span>
+                                                {% elif vehicle.status == 'in_use' %}
+                                                    <span class="badge bg-warning">In Use</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Maintenance</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Driver Information</h6>
+                                            {% if vehicle.driver_name %}
+                                                <p><strong>Driver:</strong> {{ vehicle.driver_name }}</p>
+                                                <p><strong>Assigned:</strong> Yes</p>
+                                            {% else %}
+                                                <p><strong>Driver:</strong> <span class="text-muted">Unassigned</span></p>
+                                                <p><strong>Assigned:</strong> No</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <hr>
+                                    <h6>Service History</h6>
+                                    <p class="text-muted">Service history and maintenance records will be displayed here.</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary">Update Vehicle</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No vehicles found</h5>
+            <p class="text-muted">Start by adding your first vehicle to the fleet.</p>
+            <a href="{{ url_for('add_vehicle') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add First Vehicle
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

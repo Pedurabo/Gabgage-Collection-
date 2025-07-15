@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}Fuel Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-gas-pump text-warning"></i>
+                    Fuel Management & Analytics
+                </h2>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-warning" onclick="addFuelRecord()">
+                        <i class="fas fa-plus"></i> Add Fuel Record
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportFuelReport()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fuel Analytics Dashboard -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Fuel Cost</h6>
+                                    <h3 class="mb-0" id="totalFuelCost">$0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-dollar-sign fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Liters</h6>
+                                    <h3 class="mb-0" id="totalLiters">0 L</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-gas-pump fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Avg Cost/Liter</h6>
+                                    <h3 class="mb-0" id="avgCostPerLiter">$0.00</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-chart-line fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">This Month</h6>
+                                    <h3 class="mb-0" id="monthlyCost">$0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-calendar-alt fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fuel Records and Charts -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list"></i> Fuel Records
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Vehicle</th>
+                                            <th>Date</th>
+                                            <th>Fuel Type</th>
+                                            <th>Quantity</th>
+                                            <th>Cost/Liter</th>
+                                            <th>Total Cost</th>
+                                            <th>Station</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for record in fuel_records %}
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong>{{ record.vehicle.vehicle_number }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ record.vehicle.vehicle_type }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">{{ record.fuel_date.strftime('%Y-%m-%d') }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ 'warning' if record.fuel_type == 'diesel' else 'info' }}">
+                                                    {{ record.fuel_type.title() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <strong>{{ "%.1f"|format(record.quantity) }} L</strong>
+                                            </td>
+                                            <td>
+                                                <span class="text-success">${{ "%.2f"|format(record.cost_per_liter) }}</span>
+                                            </td>
+                                            <td>
+                                                <strong class="text-warning">${{ "%.2f"|format(record.total_cost) }}</strong>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ record.fuel_station or 'Not specified' }}</small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-info" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#fuelModal{{ record.id }}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line"></i> Fuel Cost Trend
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="fuelCostChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow mt-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie"></i> Fuel Type Distribution
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="fuelTypeChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fuel Efficiency Analytics -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tachometer-alt"></i> Fuel Efficiency Analytics
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Vehicle Efficiency Ranking</h6>
+                                    <div id="efficiencyRanking">
+                                        <!-- Efficiency ranking will be populated here -->
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Cost Savings Opportunities</h6>
+                                    <div id="costSavings">
+                                        <!-- Cost savings recommendations will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fuel Record Detail Modals -->
+{% for record in fuel_records %}
+<div class="modal fade" id="fuelModal{{ record.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-gas-pump"></i> Fuel Record Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Vehicle Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Vehicle:</strong></td>
+                                <td>{{ record.vehicle.vehicle_number }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Type:</strong></td>
+                                <td>{{ record.vehicle.vehicle_type }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Odometer:</strong></td>
+                                <td>{{ "%.0f"|format(record.odometer_reading or 0) }} km</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Fuel Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Date:</strong></td>
+                                <td>{{ record.fuel_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fuel Type:</strong></td>
+                                <td>{{ record.fuel_type.title() }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Quantity:</strong></td>
+                                <td>{{ "%.1f"|format(record.quantity) }} L</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cost/Liter:</strong></td>
+                                <td>${{ "%.2f"|format(record.cost_per_liter) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Cost:</strong></td>
+                                <td class="text-warning">${{ "%.2f"|format(record.total_cost) }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if record.fuel_station or record.receipt_number or record.notes %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Additional Information</h6>
+                        <table class="table table-sm">
+                            {% if record.fuel_station %}
+                            <tr>
+                                <td><strong>Fuel Station:</strong></td>
+                                <td>{{ record.fuel_station }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if record.receipt_number %}
+                            <tr>
+                                <td><strong>Receipt Number:</strong></td>
+                                <td>{{ record.receipt_number }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if record.notes %}
+                            <tr>
+                                <td><strong>Notes:</strong></td>
+                                <td>{{ record.notes }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Edit Record
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let fuelCostChart, fuelTypeChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeFuelCharts();
+    loadFuelAnalytics();
+});
+
+function initializeFuelCharts() {
+    // Fuel Cost Trend Chart
+    const costCtx = document.getElementById('fuelCostChart').getContext('2d');
+    fuelCostChart = new Chart(costCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Fuel Cost',
+                data: [1200, 1350, 1100, 1400, 1300, 1250],
+                borderColor: 'rgb(255, 193, 7)',
+                backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Fuel Type Distribution Chart
+    const typeCtx = document.getElementById('fuelTypeChart').getContext('2d');
+    fuelTypeChart = new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Diesel', 'Gasoline', 'Electric'],
+            datasets: [{
+                data: [70, 25, 5],
+                backgroundColor: [
+                    'rgb(255, 193, 7)',
+                    'rgb(23, 162, 184)',
+                    'rgb(40, 167, 69)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function loadFuelAnalytics() {
+    // Calculate totals from fuel records
+    const records = {{ fuel_records|tojson }};
+    const totalCost = records.reduce((sum, r) => sum + r.total_cost, 0);
+    const totalLiters = records.reduce((sum, r) => sum + r.quantity, 0);
+    const avgCostPerLiter = totalCost / totalLiters;
+    
+    document.getElementById('totalFuelCost').textContent = '$' + totalCost.toFixed(2);
+    document.getElementById('totalLiters').textContent = totalLiters.toFixed(1) + ' L';
+    document.getElementById('avgCostPerLiter').textContent = '$' + avgCostPerLiter.toFixed(2);
+    
+    // Calculate monthly cost
+    const currentMonth = new Date().getMonth();
+    const monthlyRecords = records.filter(r => new Date(r.fuel_date).getMonth() === currentMonth);
+    const monthlyCost = monthlyRecords.reduce((sum, r) => sum + r.total_cost, 0);
+    document.getElementById('monthlyCost').textContent = '$' + monthlyCost.toFixed(2);
+}
+
+function addFuelRecord() {
+    console.log('Adding fuel record...');
+    alert('Add fuel record feature will be implemented here.');
+}
+
+function exportFuelReport() {
+    console.log('Exporting fuel report...');
+    alert('Fuel report export feature will be implemented here.');
+}
+</script>
+{% endblock %} 

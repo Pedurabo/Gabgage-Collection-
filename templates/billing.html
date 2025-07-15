@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Billing Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-file-invoice-dollar text-primary"></i>
+                    Billing Management
+                </h2>
+                <a href="{{ url_for('add_bill') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Bill
+                </a>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Bills</h6>
+                                    <h3 class="mb-0">{{ bills|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-file-invoice fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Paid Bills</h6>
+                                    <h3 class="mb-0">{{ bills|selectattr('status', 'equalto', 'paid')|list|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Pending Bills</h6>
+                                    <h3 class="mb-0">{{ bills|selectattr('status', 'equalto', 'pending')|list|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Overdue Bills</h6>
+                                    <h3 class="mb-0">{{ bills|selectattr('status', 'equalto', 'overdue')|list|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bills Table -->
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> All Bills
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Bill #</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bill in bills %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ bill.bill_number }}</strong>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ bill.customer.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ bill.customer.email }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>${{ "%.2f"|format(bill.total_amount) }}</strong>
+                                        <br>
+                                        <small class="text-muted">Base: ${{ "%.2f"|format(bill.amount) }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if bill.due_date < today else 'secondary' }}">
+                                            {{ bill.due_date.strftime('%Y-%m-%d') }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if bill.status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% elif bill.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif bill.status == 'overdue' %}
+                                            <span class="badge bg-danger">Overdue</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ bill.status.title() }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#billModal{{ bill.id }}">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <a href="{{ url_for('add_payment') }}?bill_id={{ bill.id }}" 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-credit-card"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bill Detail Modals -->
+{% for bill in bills %}
+<div class="modal fade" id="billModal{{ bill.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-invoice"></i> Bill Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Bill Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Bill Number:</strong></td>
+                                <td>{{ bill.bill_number }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bill Date:</strong></td>
+                                <td>{{ bill.bill_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Due Date:</strong></td>
+                                <td>{{ bill.due_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if bill.status == 'paid' %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% elif bill.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif bill.status == 'overdue' %}
+                                        <span class="badge bg-danger">Overdue</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ bill.status.title() }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Customer Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td>{{ bill.customer.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>{{ bill.customer.email }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone:</strong></td>
+                                <td>{{ bill.customer.phone }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Address:</strong></td>
+                                <td>{{ bill.customer.address }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Bill Items</h6>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in bill.items %}
+                                <tr>
+                                    <td>{{ item.description }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>${{ "%.2f"|format(item.unit_price) }}</td>
+                                    <td>${{ "%.2f"|format(item.total_price) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6 offset-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Subtotal:</strong></td>
+                                <td>${{ "%.2f"|format(bill.amount) }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tax:</strong></td>
+                                <td>${{ "%.2f"|format(bill.tax_amount) }}</td>
+                            </tr>
+                            <tr class="table-active">
+                                <td><strong>Total:</strong></td>
+                                <td><strong>${{ "%.2f"|format(bill.total_amount) }}</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('add_payment') }}?bill_id={{ bill.id }}" class="btn btn-success">
+                    <i class="fas fa-credit-card"></i> Record Payment
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %} 

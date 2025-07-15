@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Garbage Collection & Disposal Firm{% endblock %}
+
+{% block page_title %}Welcome to EcoClean{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <h1 class="display-4 text-primary mb-3">
+                    <i class="fas fa-recycle me-3"></i>Welcome to EcoClean
+                </h1>
+                <p class="lead text-muted">Professional Garbage Collection & Disposal Services</p>
+                <p class="text-muted">We provide reliable, efficient, and environmentally-friendly waste management solutions for homes and businesses.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-3x mb-3"></i>
+                <h3 class="card-title">Customers</h3>
+                <p class="card-text">Manage your customer database</p>
+                <a href="{{ url_for('customers') }}" class="btn btn-light">View Customers</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                <h3 class="card-title">Service Requests</h3>
+                <p class="card-text">Track and manage service requests</p>
+                <a href="{{ url_for('requests') }}" class="btn btn-light">View Requests</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-truck fa-3x mb-3"></i>
+                <h3 class="card-title">Vehicles</h3>
+                <p class="card-text">Manage your fleet</p>
+                <a href="{{ url_for('vehicles') }}" class="btn btn-light">View Vehicles</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-user-tie fa-3x mb-3"></i>
+                <h3 class="card-title">Employees</h3>
+                <p class="card-text">Manage your team</p>
+                <a href="{{ url_for('employees') }}" class="btn btn-light">View Employees</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Quick Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-users text-primary fa-2x mb-2"></i>
+                            <h4 class="text-primary">0</h4>
+                            <small class="text-muted">Total Customers</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-clock text-warning fa-2x mb-2"></i>
+                            <h4 class="text-warning">0</h4>
+                            <small class="text-muted">Pending Requests</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                            <h4 class="text-success">0</h4>
+                            <small class="text-muted">Completed Today</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-truck text-info fa-2x mb-2"></i>
+                            <h4 class="text-info">0</h4>
+                            <small class="text-muted">Active Vehicles</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tasks me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('add_customer') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add New Customer
+                    </a>
+                    <a href="{{ url_for('add_request') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Create Service Request
+                    </a>
+                    <a href="{{ url_for('add_vehicle') }}" class="btn btn-info">
+                        <i class="fas fa-plus me-2"></i>Add Vehicle
+                    </a>
+                    <a href="{{ url_for('add_employee') }}" class="btn btn-warning">
+                        <i class="fas fa-plus me-2"></i>Add Employee
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>About Our Services
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-home text-primary fa-2x mb-2"></i>
+                            <h6>Residential Collection</h6>
+                            <p class="text-muted small">Regular household waste collection with flexible scheduling options.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-building text-success fa-2x mb-2"></i>
+                            <h6>Commercial Services</h6>
+                            <p class="text-muted small">Comprehensive waste management solutions for businesses of all sizes.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-leaf text-warning fa-2x mb-2"></i>
+                            <h6>Recycling Programs</h6>
+                            <p class="text-muted small">Environmentally-friendly recycling and waste reduction programs.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

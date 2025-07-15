@@ -1,0 +1,586 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EcoClean{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="card-title mb-1">
+                                <i class="fas fa-chart-line text-primary me-2"></i>
+                                Welcome to EcoClean Management
+                            </h2>
+                            <p class="text-muted mb-0">Real-time overview of your garbage collection operations</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary quick-action-btn" data-action="generate_report" data-bs-toggle="tooltip" title="Generate Quick Report">
+                                <i class="fas fa-file-alt me-2"></i>Quick Report
+                            </button>
+                            <button class="btn btn-outline-success quick-action-btn" data-action="new_request" data-bs-toggle="tooltip" title="Create New Service Request">
+                                <i class="fas fa-plus me-2"></i>New Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card dashboard-card" data-type="customers">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <div class="stats-icon bg-primary">
+                            <i class="fas fa-users text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="card-title mb-1">{{ total_customers }}</h3>
+                    <p class="text-muted mb-0">Total Customers</p>
+                    <small class="text-success">
+                        <i class="fas fa-arrow-up me-1"></i>+12% this month
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card dashboard-card" data-type="requests">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <div class="stats-icon bg-success">
+                            <i class="fas fa-clipboard-list text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="card-title mb-1">{{ total_requests }}</h3>
+                    <p class="text-muted mb-0">Active Requests</p>
+                    <small class="text-warning">
+                        <i class="fas fa-clock me-1"></i>8 pending
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card dashboard-card" data-type="vehicles">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <div class="stats-icon bg-info">
+                            <i class="fas fa-truck text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="card-title mb-1">{{ total_vehicles }}</h3>
+                    <p class="text-muted mb-0">Fleet Vehicles</p>
+                    <small class="text-success">
+                        <i class="fas fa-check-circle me-1"></i>85% operational
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card dashboard-card" data-type="revenue">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <div class="stats-icon bg-warning">
+                            <i class="fas fa-dollar-sign text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="card-title mb-1">${{ "%.2f"|format(total_revenue) }}</h3>
+                    <p class="text-muted mb-0">Monthly Revenue</p>
+                    <small class="text-success">
+                        <i class="fas fa-arrow-up me-1"></i>+8.5% vs last month
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Operations -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-3">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        Live Operations Map
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="refreshMap">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success" id="optimizeRoutes">
+                            <i class="fas fa-route me-1"></i>Optimize
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="operationsMap" style="height: 400px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                        <div class="text-center">
+                            <i class="fas fa-map fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Interactive map loading...</p>
+                            <button class="btn btn-primary" onclick="initializeMap()">
+                                <i class="fas fa-map-marked-alt me-2"></i>Load Map
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell me-2"></i>
+                        Real-time Alerts
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="alertsList">
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="alert-icon bg-success me-3">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">Vehicle #TRK-001 completed pickup</h6>
+                                <small class="text-muted">2 minutes ago</small>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="alert-icon bg-warning me-3">
+                                <i class="fas fa-exclamation-triangle text-white"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">Maintenance due for Vehicle #TRK-003</h6>
+                                <small class="text-muted">15 minutes ago</small>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="alert-icon bg-info me-3">
+                                <i class="fas fa-info-circle text-white"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">New customer registration</h6>
+                                <small class="text-muted">1 hour ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions and Recent Activity -->
+    <div class="row">
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <button class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 quick-action-btn" data-action="add_customer" data-bs-toggle="tooltip" title="Add New Customer">
+                                <i class="fas fa-user-plus fa-2x mb-2"></i>
+                                <span>Add Customer</span>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 quick-action-btn" data-action="new_request" data-bs-toggle="tooltip" title="Create Service Request">
+                                <i class="fas fa-clipboard-plus fa-2x mb-2"></i>
+                                <span>New Request</span>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 quick-action-btn" data-action="schedule_pickup" data-bs-toggle="tooltip" title="Schedule Pickup">
+                                <i class="fas fa-calendar-plus fa-2x mb-2"></i>
+                                <span>Schedule Pickup</span>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 quick-action-btn" data-action="track_vehicle" data-bs-toggle="tooltip" title="Track Vehicles">
+                                <i class="fas fa-satellite fa-2x mb-2"></i>
+                                <span>Track Vehicles</span>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-danger w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 quick-action-btn" data-action="process_payment" data-bs-toggle="tooltip" title="Process Payment">
+                                <i class="fas fa-credit-card fa-2x mb-2"></i>
+                                <span>Process Payment</span>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 quick-action-btn" data-action="generate_report" data-bs-toggle="tooltip" title="Generate Report">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                                <span>Generate Report</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for request in recent_requests[:5] %}
+                        <div class="list-group-item d-flex align-items-center customer-row" data-customer-id="{{ request.customer_id }}">
+                            <div class="activity-icon bg-primary me-3">
+                                <i class="fas fa-clipboard-list text-white"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">Service Request #{{ request.id }}</h6>
+                                <small class="text-muted">{{ request.service_type }} - {{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <span class="badge bg-{{ 'success' if request.status == 'completed' else 'warning' if request.status == 'in_progress' else 'secondary' }}">
+                                {{ request.status.replace('_', ' ').title() }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Charts -->
+    <div class="row">
+        <div class="col-lg-8 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Revenue Analytics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Service Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="serviceChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Modal for Quick Actions -->
+<div class="modal fade" id="quickActionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-bolt me-2"></i>Quick Action
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="quickActionContent">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stats-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.alert-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.dashboard-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.quick-action-btn {
+    transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+    transform: translateY(-2px);
+}
+
+#operationsMap {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    setupRealTimeUpdates();
+    setupMapInteractions();
+});
+
+function initializeCharts() {
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Monthly Revenue',
+                data: [12000, 15000, 18000, 16000, 22000, 25000],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Service Distribution Chart
+    const serviceCtx = document.getElementById('serviceChart').getContext('2d');
+    const serviceChart = new Chart(serviceCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Residential', 'Commercial', 'Recycling', 'Hazardous', 'Bulk'],
+            datasets: [{
+                data: [45, 25, 15, 10, 5],
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+}
+
+function setupRealTimeUpdates() {
+    // Simulate real-time updates
+    setInterval(function() {
+        updateAlerts();
+        updateMetrics();
+    }, 30000); // Update every 30 seconds
+}
+
+function updateAlerts() {
+    const alertsList = document.getElementById('alertsList');
+    if (alertsList) {
+        // Add new alert
+        const newAlert = document.createElement('div');
+        newAlert.className = 'list-group-item d-flex align-items-center';
+        newAlert.innerHTML = `
+            <div class="alert-icon bg-info me-3">
+                <i class="fas fa-info-circle text-white"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="mb-1">Real-time update received</h6>
+                <small class="text-muted">Just now</small>
+            </div>
+        `;
+        alertsList.insertBefore(newAlert, alertsList.firstChild);
+        
+        // Remove old alerts if too many
+        if (alertsList.children.length > 5) {
+            alertsList.removeChild(alertsList.lastChild);
+        }
+    }
+}
+
+function updateMetrics() {
+    // Update dashboard metrics with real-time data
+    const metricElements = document.querySelectorAll('.dashboard-card .card-title');
+    metricElements.forEach(element => {
+        const currentValue = parseInt(element.textContent);
+        const newValue = currentValue + Math.floor(Math.random() * 5);
+        element.textContent = newValue;
+    });
+}
+
+function setupMapInteractions() {
+    // Map refresh button
+    document.getElementById('refreshMap').addEventListener('click', function() {
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Refreshing...';
+        setTimeout(() => {
+            this.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Refresh';
+        }, 2000);
+    });
+
+    // Route optimization button
+    document.getElementById('optimizeRoutes').addEventListener('click', function() {
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Optimizing...';
+        setTimeout(() => {
+            this.innerHTML = '<i class="fas fa-route me-1"></i>Optimize';
+            showNotification('Routes optimized successfully!', 'success');
+        }, 3000);
+    });
+}
+
+function initializeMap() {
+    const mapContainer = document.getElementById('operationsMap');
+    mapContainer.innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-map-marked-alt fa-3x text-primary mb-3"></i>
+            <h5>Interactive Operations Map</h5>
+            <p class="text-muted">Real-time vehicle tracking and route optimization</p>
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-sm btn-primary" onclick="trackVehicles()">
+                    <i class="fas fa-satellite me-1"></i>Track Vehicles
+                </button>
+                <button class="btn btn-sm btn-success" onclick="optimizeRoutes()">
+                    <i class="fas fa-route me-1"></i>Optimize Routes
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function trackVehicles() {
+    showNotification('Vehicle tracking activated!', 'info');
+}
+
+function optimizeRoutes() {
+    showNotification('Route optimization in progress...', 'warning');
+    setTimeout(() => {
+        showNotification('Routes optimized successfully!', 'success');
+    }, 2000);
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Dashboard card click handlers
+document.querySelectorAll('.dashboard-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const cardType = this.dataset.type;
+        handleDashboardCardClick(cardType);
+    });
+});
+
+function handleDashboardCardClick(cardType) {
+    switch(cardType) {
+        case 'customers':
+            window.location.href = '/customers';
+            break;
+        case 'requests':
+            window.location.href = '/requests';
+            break;
+        case 'vehicles':
+            window.location.href = '/vehicles';
+            break;
+        case 'revenue':
+            window.location.href = '/analytics';
+            break;
+    }
+}
+</script>
+{% endblock %} 

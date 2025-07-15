@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Add Department - EcoClean{% endblock %}
+
+{% block page_title %}Add New Department{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-building me-2"></i>Department Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_department') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Department Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="manager_id" class="form-label">Department Manager</label>
+                            <select class="form-select" id="manager_id" name="manager_id">
+                                <option value="">Select manager...</option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}">{{ employee.name }} - {{ employee.role }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Describe the department's responsibilities and functions..." required></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="department_type" class="form-label">Department Type</label>
+                            <select class="form-select" id="department_type" name="department_type">
+                                <option value="operational">Operational</option>
+                                <option value="support">Support</option>
+                                <option value="administrative">Administrative</option>
+                                <option value="technical">Technical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" placeholder="e.g., Main Office, Warehouse">
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('departments') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Departments
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Create Department
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Department Types
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Operational Departments</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Operations:</strong> Daily collection and disposal activities</li>
+                            <li><strong>Fleet Management:</strong> Vehicle operations and maintenance</li>
+                            <li><strong>Field Services:</strong> On-site collection teams</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Support Departments</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Customer Service:</strong> Client communication and support</li>
+                            <li><strong>Administration:</strong> Administrative and management tasks</li>
+                            <li><strong>Technical:</strong> Equipment and system maintenance</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('form');
+    const nameInput = document.getElementById('name');
+    const descriptionTextarea = document.getElementById('description');
+    
+    // Auto-fill description based on department type
+    const deptTypeSelect = document.getElementById('department_type');
+    deptTypeSelect.addEventListener('change', function() {
+        const descriptions = {
+            'operational': 'Handles daily operational activities including waste collection, transportation, and disposal services.',
+            'support': 'Provides support services including customer service, administrative tasks, and technical assistance.',
+            'administrative': 'Manages administrative functions including HR, finance, and general office operations.',
+            'technical': 'Handles technical operations including equipment maintenance, IT support, and system management.'
+        };
+        
+        if (this.value && descriptions[this.value]) {
+            descriptionTextarea.value = descriptions[this.value];
+        }
+    });
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+});
+</script>
+{% endblock %} 

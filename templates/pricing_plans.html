@@ -1,0 +1,828 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing Plans - EcoClean Waste Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-primary">
+                        <i class="fas fa-tags me-2"></i>Pricing Plans
+                    </h1>
+                    <p class="text-muted mb-0">Manage service pricing and packages</p>
+                </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPlanModal">
+                    <i class="fas fa-plus me-2"></i>Add New Plan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-tags text-primary fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Total Plans</h6>
+                            <h4 class="mb-0 text-primary">{{ pricing_plans|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-check-circle text-success fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Active Plans</h6>
+                            <h4 class="mb-0 text-success">{{ pricing_plans|selectattr('is_active', 'equalto', true)|list|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-users text-info fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Total Contracts</h6>
+                            <h4 class="mb-0 text-info">{{ contracts|length }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-dollar-sign text-warning fa-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="card-title mb-1">Avg. Revenue</h6>
+                            <h4 class="mb-0 text-warning">${{ "%.0f"|format(avg_revenue|default(0)) }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Plans Grid -->
+    <div class="row">
+        {% for plan in pricing_plans %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm pricing-card">
+                <div class="card-header bg-gradient-primary text-white text-center py-4">
+                    <h5 class="mb-1">{{ plan.name }}</h5>
+                    <div class="price-display">
+                        <span class="currency">$</span>
+                        <span class="amount">{{ "%.0f"|format(plan.base_price) }}</span>
+                        <span class="period">/month</span>
+                    </div>
+                    {% if not plan.is_active %}
+                    <span class="badge bg-secondary mt-2">Inactive</span>
+                    {% endif %}
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p class="text-muted mb-3">{{ plan.description }}</p>
+                    
+                    <div class="pricing-features mb-4">
+                        <div class="feature-item d-flex align-items-center mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <span>Base Price: ${{ "%.2f"|format(plan.base_price) }}</span>
+                        </div>
+                        <div class="feature-item d-flex align-items-center mb-2">
+                            <i class="fas fa-weight text-info me-2"></i>
+                            <span>Per KG: ${{ "%.3f"|format(plan.price_per_kg) }}</span>
+                        </div>
+                        <div class="feature-item d-flex align-items-center mb-2">
+                            <i class="fas fa-truck text-warning me-2"></i>
+                            <span>Per Pickup: ${{ "%.2f"|format(plan.price_per_pickup) }}</span>
+                        </div>
+                        {% if plan.frequency_discount > 0 %}
+                        <div class="feature-item d-flex align-items-center mb-2">
+                            <i class="fas fa-percentage text-primary me-2"></i>
+                            <span>Frequency Discount: {{ "%.0f"|format(plan.frequency_discount) }}%</span>
+                        </div>
+                        {% endif %}
+                        {% if plan.volume_discount > 0 %}
+                        <div class="feature-item d-flex align-items-center mb-2">
+                            <i class="fas fa-chart-line text-success me-2"></i>
+                            <span>Volume Discount: {{ "%.0f"|format(plan.volume_discount) }}%</span>
+                        </div>
+                        {% endif %}
+                        {% if plan.contract_discount > 0 %}
+                        <div class="feature-item d-flex align-items-center mb-2">
+                            <i class="fas fa-file-contract text-info me-2"></i>
+                            <span>Contract Discount: {{ "%.0f"|format(plan.contract_discount) }}%</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="editPlan({{ plan.id }})">
+                                <i class="fas fa-edit me-2"></i>Edit Plan
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="viewContracts({{ plan.id }})">
+                                <i class="fas fa-file-contract me-2"></i>View Contracts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Add Plan Modal -->
+<div class="modal fade" id="addPlanModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>Add New Pricing Plan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_pricing_plan') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Plan Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="base_price" class="form-label">Base Price ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="base_price" name="base_price" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="price_per_kg" class="form-label">Price per KG ($)</label>
+                            <input type="number" step="0.001" class="form-control" id="price_per_kg" name="price_per_kg" value="0.0">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="price_per_pickup" class="form-label">Price per Pickup ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="price_per_pickup" name="price_per_pickup" value="0.0">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="frequency_discount" class="form-label">Frequency Discount (%)</label>
+                            <input type="number" step="0.1" class="form-control" id="frequency_discount" name="frequency_discount" value="0.0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="volume_discount" class="form-label">Volume Discount (%)</label>
+                            <input type="number" step="0.1" class="form-control" id="volume_discount" name="volume_discount" value="0.0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="contract_discount" class="form-label">Contract Discount (%)</label>
+                            <input type="number" step="0.1" class="form-control" id="contract_discount" name="contract_discount" value="0.0">
+                        </div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                        <label class="form-check-label" for="is_active">
+                            Active Plan
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Plan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Pricing Calculator Modal -->
+<div class="modal fade" id="pricingCalculatorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calculator me-2"></i>Pricing Calculator
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="calc_weight" class="form-label">Waste Weight (kg)</label>
+                        <input type="number" step="0.1" class="form-control" id="calc_weight" value="100">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="calc_pickups" class="form-label">Number of Pickups</label>
+                        <input type="number" class="form-control" id="calc_pickups" value="4">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="calc_frequency" class="form-label">Service Frequency</label>
+                        <select class="form-select" id="calc_frequency">
+                            <option value="weekly">Weekly</option>
+                            <option value="bi-weekly">Bi-weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="calc_contract_length" class="form-label">Contract Length (months)</label>
+                        <input type="number" class="form-control" id="calc_contract_length" value="12">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-primary" onclick="calculatePricing()">
+                        <i class="fas fa-calculator me-2"></i>Calculate Pricing
+                    </button>
+                </div>
+                <div id="pricing-results" class="mt-4" style="display: none;">
+                    <h6 class="text-primary mb-3">Pricing Results</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Monthly Cost</h6>
+                                    <h4 class="text-primary" id="monthly-cost">$0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Annual Cost</h6>
+                                    <h4 class="text-success" id="annual-cost">$0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editPlan(planId) {
+    // Implement edit functionality
+    console.log('Edit plan:', planId);
+}
+
+function viewContracts(planId) {
+    // Implement view contracts functionality
+    console.log('View contracts for plan:', planId);
+}
+
+function calculatePricing() {
+    const weight = parseFloat(document.getElementById('calc_weight').value);
+    const pickups = parseInt(document.getElementById('calc_pickups').value);
+    const frequency = document.getElementById('calc_frequency').value;
+    const contractLength = parseInt(document.getElementById('calc_contract_length').value);
+    
+    // Simple calculation example
+    const basePrice = 150; // Default base price
+    const pricePerKg = 0.025; // Default price per kg
+    const pricePerPickup = 25; // Default price per pickup
+    
+    let monthlyCost = basePrice + (weight * pricePerKg) + (pickups * pricePerPickup);
+    
+    // Apply frequency discount
+    if (frequency === 'weekly') {
+        monthlyCost *= 0.9; // 10% discount
+    } else if (frequency === 'bi-weekly') {
+        monthlyCost *= 0.95; // 5% discount
+    }
+    
+    // Apply contract discount
+    if (contractLength >= 12) {
+        monthlyCost *= 0.85; // 15% discount for annual contracts
+    }
+    
+    const annualCost = monthlyCost * 12;
+    
+    document.getElementById('monthly-cost').textContent = '$' + monthlyCost.toFixed(2);
+    document.getElementById('annual-cost').textContent = '$' + annualCost.toFixed(2);
+    document.getElementById('pricing-results').style.display = 'block';
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+
+<style>
+.pricing-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.pricing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.price-display {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.price-display .currency {
+    font-size: 1.5rem;
+    vertical-align: top;
+}
+
+.price-display .amount {
+    font-size: 2.5rem;
+}
+
+.price-display .period {
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+.feature-item {
+    font-size: 0.9rem;
+}
+
+.pricing-features {
+    flex-grow: 1;
+}
+{% extends "base.html" %}
+
+{% block title %}Pricing Plans{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-tags text-primary"></i>
+                    Dynamic Pricing & Market Plans
+                </h2>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary" onclick="calculateCustomPricing()">
+                        <i class="fas fa-calculator"></i> Custom Quote
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportPricingReport()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Market Overview -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Market Share</h6>
+                                    <h3 class="mb-0" id="marketShare">0%</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-chart-pie fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Avg Contract Value</h6>
+                                    <h3 class="mb-0" id="avgContractValue">$0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-dollar-sign fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Customer Retention</h6>
+                                    <h3 class="mb-0" id="customerRetention">0%</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Growth Rate</h6>
+                                    <h3 class="mb-0" id="growthRate">0%</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-chart-line fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing Plans -->
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header bg-primary text-white text-center">
+                            <h4 class="mb-0">
+                                <i class="fas fa-home"></i> Residential
+                            </h4>
+                        </div>
+                        <div class="card-body text-center">
+                            <h2 class="text-primary mb-3">$150<span class="text-muted">/month</span></h2>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Weekly collection</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Up to 100kg waste</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Recycling included</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Customer portal access</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> 24/7 support</li>
+                            </ul>
+                            <div class="mt-4">
+                                <button class="btn btn-primary btn-lg w-100" onclick="selectPlan('residential')">
+                                    Choose Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header bg-success text-white text-center position-relative">
+                            <span class="position-absolute top-0 start-50 translate-middle badge bg-warning text-dark">POPULAR</span>
+                            <h4 class="mb-0">
+                                <i class="fas fa-building"></i> Commercial
+                            </h4>
+                        </div>
+                        <div class="card-body text-center">
+                            <h2 class="text-success mb-3">$450<span class="text-muted">/month</span></h2>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Daily collection</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Up to 500kg waste</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Advanced recycling</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Priority scheduling</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Dedicated account manager</li>
+                            </ul>
+                            <div class="mt-4">
+                                <button class="btn btn-success btn-lg w-100" onclick="selectPlan('commercial')">
+                                    Choose Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header bg-warning text-white text-center">
+                            <h4 class="mb-0">
+                                <i class="fas fa-industry"></i> Industrial
+                            </h4>
+                        </div>
+                        <div class="card-body text-center">
+                            <h2 class="text-warning mb-3">$1,200<span class="text-muted">/month</span></h2>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Multiple daily pickups</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Unlimited waste volume</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Hazardous waste handling</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> Custom containers</li>
+                                <li class="mb-2"><i class="fas fa-check text-success"></i> 24/7 emergency service</li>
+                            </ul>
+                            <div class="mt-4">
+                                <button class="btn btn-warning btn-lg w-100" onclick="selectPlan('industrial')">
+                                    Choose Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Pricing Calculator -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calculator"></i> Custom Pricing Calculator
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <form id="pricingForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">Customer Type</label>
+                                            <select class="form-select" id="customerType">
+                                                <option value="residential">Residential</option>
+                                                <option value="commercial">Commercial</option>
+                                                <option value="industrial">Industrial</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Estimated Waste (kg/month)</label>
+                                            <input type="number" class="form-control" id="wasteWeight" value="100" min="10" max="10000">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Service Frequency</label>
+                                            <select class="form-select" id="serviceFrequency">
+                                                <option value="weekly">Weekly</option>
+                                                <option value="daily">Daily</option>
+                                                <option value="twice_weekly">Twice Weekly</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Contract Duration (months)</label>
+                                            <select class="form-select" id="contractDuration">
+                                                <option value="1">1 Month</option>
+                                                <option value="6">6 Months</option>
+                                                <option value="12" selected>12 Months</option>
+                                                <option value="24">24 Months</option>
+                                            </select>
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="calculatePricing()">
+                                            <i class="fas fa-calculator"></i> Calculate Price
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-6">
+                                    <div id="pricingResults" class="d-none">
+                                        <h6 class="text-muted">Price Breakdown</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Base Price:</td>
+                                                        <td class="text-end" id="basePrice">$0.00</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Waste Charge:</td>
+                                                        <td class="text-end" id="wasteCharge">$0.00</td>
+                                                    </tr>
+                                                    <tr class="table-light">
+                                                        <td><strong>Subtotal:</strong></td>
+                                                        <td class="text-end"><strong id="subtotal">$0.00</strong></td>
+                                                    </tr>
+                                                    <tr class="table-success">
+                                                        <td>Frequency Discount:</td>
+                                                        <td class="text-end text-success" id="frequencyDiscount">-$0.00</td>
+                                                    </tr>
+                                                    <tr class="table-success">
+                                                        <td>Contract Discount:</td>
+                                                        <td class="text-end text-success" id="contractDiscount">-$0.00</td>
+                                                    </tr>
+                                                    <tr class="table-primary">
+                                                        <td><strong>Total Monthly:</strong></td>
+                                                        <td class="text-end"><strong id="totalPrice">$0.00</strong></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="mt-3">
+                                            <button class="btn btn-success w-100" onclick="createContract()">
+                                                <i class="fas fa-file-contract"></i> Create Contract
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Trends -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line"></i> Market Trends & Analysis
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="marketTrendsChart" width="400" height="300"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Segment</th>
+                                                    <th>Growth Rate</th>
+                                                    <th>Market Share</th>
+                                                    <th>Avg Contract</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="marketTrendsTable">
+                                                <!-- Market trends will be populated here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let marketTrendsChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMarketCharts();
+    loadMarketTrends();
+});
+
+function initializeMarketCharts() {
+    const ctx = document.getElementById('marketTrendsChart').getContext('2d');
+    marketTrendsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Residential', 'Commercial', 'Industrial'],
+            datasets: [{
+                label: 'Growth Rate (%)',
+                data: [5.2, 8.7, 12.1],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(40, 167, 69, 0.6)',
+                    'rgba(255, 193, 7, 0.6)'
+                ],
+                borderColor: [
+                    'rgb(75, 192, 192)',
+                    'rgb(40, 167, 69)',
+                    'rgb(255, 193, 7)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function loadMarketTrends() {
+    fetch('/api/market/trends')
+        .then(response => response.json())
+        .then(data => {
+            updateMarketStats(data);
+            updateMarketTable(data);
+        })
+        .catch(error => console.error('Error loading market trends:', error));
+}
+
+function updateMarketStats(data) {
+    const totalMarketShare = Object.values(data).reduce((sum, segment) => sum + segment.market_share, 0);
+    const avgContractValue = Object.values(data).reduce((sum, segment) => sum + segment.avg_contract_value, 0) / 3;
+    const avgRetention = Object.values(data).reduce((sum, segment) => sum + segment.customer_retention, 0) / 3;
+    const avgGrowth = Object.values(data).reduce((sum, segment) => sum + segment.growth_rate, 0) / 3;
+    
+    document.getElementById('marketShare').textContent = totalMarketShare.toFixed(1) + '%';
+    document.getElementById('avgContractValue').textContent = '$' + avgContractValue.toFixed(0);
+    document.getElementById('customerRetention').textContent = avgRetention.toFixed(1) + '%';
+    document.getElementById('growthRate').textContent = avgGrowth.toFixed(1) + '%';
+}
+
+function updateMarketTable(data) {
+    const table = document.getElementById('marketTrendsTable');
+    table.innerHTML = '';
+    
+    Object.entries(data).forEach(([segment, stats]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><strong>${segment.charAt(0).toUpperCase() + segment.slice(1)}</strong></td>
+            <td><span class="badge bg-success">${stats.growth_rate}%</span></td>
+            <td><span class="badge bg-info">${stats.market_share}%</span></td>
+            <td><span class="text-primary">$${stats.avg_contract_value.toLocaleString()}</span></td>
+        `;
+        table.appendChild(row);
+    });
+}
+
+function calculatePricing() {
+    const customerType = document.getElementById('customerType').value;
+    const wasteWeight = parseFloat(document.getElementById('wasteWeight').value);
+    const serviceFrequency = document.getElementById('serviceFrequency').value;
+    const contractDuration = parseInt(document.getElementById('contractDuration').value);
+    
+    fetch(`/api/pricing/calculate?customer_id=1&waste_weight=${wasteWeight}&service_frequency=${serviceFrequency}&contract_duration=${contractDuration}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('basePrice').textContent = '$' + data.base_price.toFixed(2);
+            document.getElementById('wasteCharge').textContent = '$' + data.waste_charge.toFixed(2);
+            document.getElementById('subtotal').textContent = '$' + data.subtotal.toFixed(2);
+            document.getElementById('frequencyDiscount').textContent = '-$' + data.frequency_discount.toFixed(2);
+            document.getElementById('contractDiscount').textContent = '-$' + data.contract_discount.toFixed(2);
+            document.getElementById('totalPrice').textContent = '$' + data.total.toFixed(2);
+            
+            document.getElementById('pricingResults').classList.remove('d-none');
+        })
+        .catch(error => console.error('Error calculating pricing:', error));
+}
+
+function selectPlan(planType) {
+    // Set form values based on selected plan
+    document.getElementById('customerType').value = planType;
+    
+    switch(planType) {
+        case 'residential':
+            document.getElementById('wasteWeight').value = 100;
+            document.getElementById('serviceFrequency').value = 'weekly';
+            break;
+        case 'commercial':
+            document.getElementById('wasteWeight').value = 500;
+            document.getElementById('serviceFrequency').value = 'daily';
+            break;
+        case 'industrial':
+            document.getElementById('wasteWeight').value = 2000;
+            document.getElementById('serviceFrequency').value = 'daily';
+            break;
+    }
+    
+    calculatePricing();
+}
+
+function createContract() {
+    alert('Contract creation feature will be implemented here.');
+}
+
+function calculateCustomPricing() {
+    // Scroll to pricing calculator
+    document.getElementById('pricingForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+function exportPricingReport() {
+    alert('Pricing report export feature will be implemented here.');
+}
+</script>
+{% endblock %} 

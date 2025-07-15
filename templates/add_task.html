@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Add Task - Garbage Collection System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-plus text-primary me-2"></i>Add New Task
+                    </h1>
+                    <p class="text-muted">Create a new task for your team</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('tasks') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Tasks
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Task Details</h6>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('add_task') }}" method="POST" id="taskForm">
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                                </h5>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label for="title" class="form-label">Task Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" required 
+                                       placeholder="Enter task title">
+                                <div class="form-text">Provide a clear, descriptive title for the task</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="priority" class="form-label">Priority Level *</label>
+                                <select class="form-select" id="priority" name="priority" required>
+                                    <option value="">Select Priority</option>
+                                    <option value="low">Low</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                                <div class="form-text">Set the priority level for this task</div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="4" 
+                                          placeholder="Provide detailed description of the task..."></textarea>
+                                <div class="form-text">Include any specific requirements, instructions, or context</div>
+                            </div>
+                        </div>
+
+                        <!-- Assignment and Timeline -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-users me-2"></i>Assignment & Timeline
+                                </h5>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="assigned_to_id" class="form-label">Assign To</label>
+                                <select class="form-select" id="assigned_to_id" name="assigned_to_id">
+                                    <option value="">Select Team Member</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}">
+                                        {{ user.get_full_name() }} ({{ user.role|title }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Choose who will be responsible for this task</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="due_date" class="form-label">Due Date</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date">
+                                <div class="form-text">Set a deadline for task completion</div>
+                            </div>
+                        </div>
+
+                        <!-- Related Items -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-link me-2"></i>Related Items
+                                </h5>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="service_request_id" class="form-label">Related Service Request</label>
+                                <select class="form-select" id="service_request_id" name="service_request_id">
+                                    <option value="">Select Service Request</option>
+                                    {% for request in service_requests %}
+                                    <option value="{{ request.id }}">
+                                        #{{ request.id }} - {{ request.service_type|title }} ({{ request.customer.name }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Link this task to a specific service request</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="vehicle_id" class="form-label">Related Vehicle</label>
+                                <select class="form-select" id="vehicle_id" name="vehicle_id">
+                                    <option value="">Select Vehicle</option>
+                                    {% for vehicle in vehicles %}
+                                    <option value="{{ vehicle.id }}">
+                                        {{ vehicle.vehicle_number }} ({{ vehicle.vehicle_type|title }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Link this task to a specific vehicle</div>
+                            </div>
+                        </div>
+
+                        <!-- Priority Guidelines -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-lightbulb me-2"></i>Priority Guidelines
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong class="text-danger">Urgent:</strong> Critical issues requiring immediate attention
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong class="text-warning">High:</strong> Important tasks with tight deadlines
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong class="text-info">Normal:</strong> Standard operational tasks
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong class="text-secondary">Low:</strong> Non-critical maintenance or improvements
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('tasks') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Create Task
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('taskForm');
+    const titleInput = document.getElementById('title');
+    const prioritySelect = document.getElementById('priority');
+    const dueDateInput = document.getElementById('due_date');
+    const assignedSelect = document.getElementById('assigned_to_id');
+
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    dueDateInput.min = today;
+
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        const errors = [];
+
+        // Validate title
+        if (!titleInput.value.trim()) {
+            errors.push('Task title is required');
+            titleInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            titleInput.classList.remove('is-invalid');
+        }
+
+        // Validate priority
+        if (!prioritySelect.value) {
+            errors.push('Priority level is required');
+            prioritySelect.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            prioritySelect.classList.remove('is-invalid');
+        }
+
+        // Validate due date if provided
+        if (dueDateInput.value) {
+            const selectedDate = new Date(dueDateInput.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                errors.push('Due date cannot be in the past');
+                dueDateInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                dueDateInput.classList.remove('is-invalid');
+            }
+        }
+
+        // Show errors if any
+        if (!isValid) {
+            e.preventDefault();
+            showAlert('Please fix the following errors:\n' + errors.join('\n'), 'danger');
+        }
+    });
+
+    // Priority change handler
+    prioritySelect.addEventListener('change', function() {
+        const priority = this.value;
+        const card = this.closest('.card');
+        
+        // Remove existing priority classes
+        card.classList.remove('border-danger', 'border-warning', 'border-info', 'border-secondary');
+        
+        // Add appropriate border class
+        switch(priority) {
+            case 'urgent':
+                card.classList.add('border-danger');
+                break;
+            case 'high':
+                card.classList.add('border-warning');
+                break;
+            case 'normal':
+                card.classList.add('border-info');
+                break;
+            case 'low':
+                card.classList.add('border-secondary');
+                break;
+        }
+    });
+
+    // Auto-save draft functionality
+    let autoSaveTimer;
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                saveDraft();
+            }, 2000);
+        });
+    });
+
+    // Save draft to localStorage
+    function saveDraft() {
+        const formData = new FormData(form);
+        const draft = {};
+        
+        for (let [key, value] of formData.entries()) {
+            draft[key] = value;
+        }
+        
+        localStorage.setItem('taskDraft', JSON.stringify(draft));
+        showNotification('Draft saved automatically', 'info');
+    }
+
+    // Load draft from localStorage
+    function loadDraft() {
+        const draft = localStorage.getItem('taskDraft');
+        if (draft) {
+            const data = JSON.parse(draft);
+            
+            for (let key in data) {
+                const input = form.querySelector(`[name="${key}"]`);
+                if (input) {
+                    input.value = data[key];
+                }
+            }
+            
+            // Trigger priority change event
+            prioritySelect.dispatchEvent(new Event('change'));
+        }
+    }
+
+    // Clear draft after successful submission
+    function clearDraft() {
+        localStorage.removeItem('taskDraft');
+    }
+
+    // Load draft on page load
+    loadDraft();
+
+    // Clear draft on successful form submission
+    form.addEventListener('submit', function() {
+        setTimeout(clearDraft, 1000);
+    });
+});
+
+// Show alert function
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message.replace(/\n/g, '<br>')}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Show notification function
+function showNotification(message, type) {
+    const notificationDiv = document.createElement('div');
+    notificationDiv.className = `toast align-items-center text-white bg-${type} border-0`;
+    notificationDiv.setAttribute('role', 'alert');
+    notificationDiv.setAttribute('aria-live', 'assertive');
+    notificationDiv.setAttribute('aria-atomic', 'true');
+    
+    notificationDiv.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+    toastContainer.appendChild(notificationDiv);
+    
+    const toast = new bootstrap.Toast(notificationDiv);
+    toast.show();
+}
+
+// Create toast container if it doesn't exist
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
+}
+</script>
+{% endblock %} 

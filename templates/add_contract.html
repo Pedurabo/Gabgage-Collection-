@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Add Contract - Garbage Collection & Disposal Firm{% endblock %}
+
+{% block page_title %}Add Contract{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h4><i class="fas fa-file-contract me-2"></i>Create New Contract</h4>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('contracts') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Contracts
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-plus me-2"></i>Contract Details
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('add_contract') }}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="customer_id" class="form-label">Customer</label>
+                        <select class="form-select" id="customer_id" name="customer_id" required>
+                            <option value="">Select Customer</option>
+                            <!-- Customer options will be populated dynamically -->
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="contract_number" class="form-label">Contract Number</label>
+                        <input type="text" class="form-control" id="contract_number" name="contract_number" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="contract_type" class="form-label">Contract Type</label>
+                        <select class="form-select" id="contract_type" name="contract_type" required>
+                            <option value="">Select Type</option>
+                            <option value="residential">Residential</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="industrial">Industrial</option>
+                            <option value="municipal">Municipal</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="service_frequency" class="form-label">Service Frequency</label>
+                        <select class="form-select" id="service_frequency" name="service_frequency" required>
+                            <option value="">Select Frequency</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="biweekly">Bi-weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="on_demand">On Demand</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="monthly_rate" class="form-label">Monthly Rate</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="monthly_rate" name="monthly_rate" step="0.01" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="draft">Draft</option>
+                            <option value="active">Active</option>
+                            <option value="expired">Expired</option>
+                            <option value="terminated">Terminated</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="services_included" class="form-label">Services Included</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="regular_pickup" name="services_included" value="regular_pickup">
+                    <label class="form-check-label" for="regular_pickup">Regular Pickup</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="recycling" name="services_included" value="recycling">
+                    <label class="form-check-label" for="recycling">Recycling</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="bulk_waste" name="services_included" value="bulk_waste">
+                    <label class="form-check-label" for="bulk_waste">Bulk Waste</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="hazardous_waste" name="services_included" value="hazardous_waste">
+                    <label class="form-check-label" for="hazardous_waste">Hazardous Waste</label>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="terms_conditions" class="form-label">Terms & Conditions</label>
+                <textarea class="form-control" id="terms_conditions" name="terms_conditions" rows="4" placeholder="Enter contract terms and conditions..."></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Additional notes..."></textarea>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-secondary me-md-2" onclick="history.back()">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Create Contract
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

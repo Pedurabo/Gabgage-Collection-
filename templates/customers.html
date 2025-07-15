@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Customers - Garbage Collection & Disposal Firm{% endblock %}
+
+{% block page_title %}Customers{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h4><i class="fas fa-users me-2"></i>Customer Management</h4>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('add_customer') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Customer
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>All Customers
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if customers %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Joined Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <strong>{{ customer.name }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ customer.email }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>
+                            <span class="text-muted">{{ customer.address[:50] }}{% if customer.address|length > 50 %}...{% endif %}</span>
+                        </td>
+                        <td>{{ customer.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#customerModal{{ customer.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Customer Detail Modal -->
+                    <div class="modal fade" id="customerModal{{ customer.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Customer Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Name:</strong> {{ customer.name }}</p>
+                                            <p><strong>Email:</strong> {{ customer.email }}</p>
+                                            <p><strong>Phone:</strong> {{ customer.phone }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Address:</strong></p>
+                                            <p class="text-muted">{{ customer.address }}</p>
+                                            <p><strong>Joined:</strong> {{ customer.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr>
+                                    <h6>Service History</h6>
+                                    {% if customer.requests %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Service Type</th>
+                                                    <th>Date</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for request in customer.requests[:5] %}
+                                                <tr>
+                                                    <td>{{ request.service_type }}</td>
+                                                    <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                                                    <td>
+                                                        {% if request.status == 'pending' %}
+                                                            <span class="badge bg-warning">Pending</span>
+                                                        {% elif request.status == 'confirmed' %}
+                                                            <span class="badge bg-info">Confirmed</span>
+                                                        {% elif request.status == 'completed' %}
+                                                            <span class="badge bg-success">Completed</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Cancelled</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No service requests yet.</p>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <a href="{{ url_for('add_request') }}?customer_id={{ customer.id }}" class="btn btn-primary">Create Service Request</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No customers found</h5>
+            <p class="text-muted">Start by adding your first customer.</p>
+            <a href="{{ url_for('add_customer') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add First Customer
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

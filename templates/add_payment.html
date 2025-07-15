@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Record Payment{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-credit-card"></i> Record Payment
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="bill_id" class="form-label">Select Bill</label>
+                                    <select class="form-select" id="bill_id" name="bill_id" required>
+                                        <option value="">Select Bill</option>
+                                        {% for bill in bills %}
+                                        <option value="{{ bill.id }}" data-amount="{{ bill.total_amount }}">
+                                            {{ bill.bill_number }} - {{ bill.customer.name }} (${{ "%.2f"|format(bill.total_amount) }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">Payment Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="amount" name="amount" 
+                                               step="0.01" min="0" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="payment_date" class="form-label">Payment Date</label>
+                                    <input type="date" class="form-control" id="payment_date" name="payment_date" 
+                                           value="{{ today }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="payment_method" class="form-label">Payment Method</label>
+                                    <select class="form-select" id="payment_method" name="payment_method" required>
+                                        <option value="">Select Payment Method</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="card">Credit/Debit Card</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="online">Online Payment</option>
+                                        <option value="check">Check</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reference_number" class="form-label">Reference Number</label>
+                                    <input type="text" class="form-control" id="reference_number" name="reference_number" 
+                                           placeholder="Transaction ID, Check number, etc.">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                              placeholder="Additional notes about the payment"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('payments') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Record Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const billSelect = document.getElementById('bill_id');
+    const amountInput = document.getElementById('amount');
+    
+    billSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const amount = selectedOption.getAttribute('data-amount');
+        if (amount) {
+            amountInput.value = amount;
+        }
+    });
+});
+</script>
+{% endblock %} 

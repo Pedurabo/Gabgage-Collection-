@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Service Requests - Garbage Collection & Disposal Firm{% endblock %}
+
+{% block page_title %}Service Requests{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h4><i class="fas fa-clipboard-list me-2"></i>Service Request Management</h4>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('add_request') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create New Request
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-2x mb-2"></i>
+                <h5>{{ requests|selectattr('status', 'equalto', 'pending')|list|length }}</h5>
+                <small>Pending</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <h5>{{ requests|selectattr('status', 'equalto', 'confirmed')|list|length }}</h5>
+                <small>Confirmed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-check-double fa-2x mb-2"></i>
+                <h5>{{ requests|selectattr('status', 'equalto', 'completed')|list|length }}</h5>
+                <small>Completed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-times-circle fa-2x mb-2"></i>
+                <h5>{{ requests|selectattr('status', 'equalto', 'cancelled')|list|length }}</h5>
+                <small>Cancelled</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>All Service Requests
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Service Type</th>
+                        <th>Description</th>
+                        <th>Scheduled Date</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ request.customer.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ request.customer.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ request.service_type }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted">{{ request.description[:50] }}{% if request.description|length > 50 %}...{% endif %}</span>
+                        </td>
+                        <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if request.status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif request.status == 'confirmed' %}
+                                <span class="badge bg-info">Confirmed</span>
+                            {% elif request.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% else %}
+                                <span class="badge bg-danger">Cancelled</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ request.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#requestModal{{ request.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#statusModal{{ request.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Request Detail Modal -->
+                    <div class="modal fade" id="requestModal{{ request.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Service Request Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Customer Information</h6>
+                                            <p><strong>Name:</strong> {{ request.customer.name }}</p>
+                                            <p><strong>Email:</strong> {{ request.customer.email }}</p>
+                                            <p><strong>Phone:</strong> {{ request.customer.phone }}</p>
+                                            <p><strong>Address:</strong> {{ request.customer.address }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Service Details</h6>
+                                            <p><strong>Service Type:</strong> {{ request.service_type }}</p>
+                                            <p><strong>Scheduled Date:</strong> {{ request.scheduled_date.strftime('%Y-%m-%d') }}</p>
+                                            <p><strong>Status:</strong> 
+                                                {% if request.status == 'pending' %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% elif request.status == 'confirmed' %}
+                                                    <span class="badge bg-info">Confirmed</span>
+                                                {% elif request.status == 'completed' %}
+                                                    <span class="badge bg-success">Completed</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Created:</strong> {{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr>
+                                    <h6>Description</h6>
+                                    <p class="text-muted">{{ request.description }}</p>
+                                    
+                                    {% if request.completed_at %}
+                                    <hr>
+                                    <h6>Completion Information</h6>
+                                    <p><strong>Completed:</strong> {{ request.completed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#statusModal{{ request.id }}" data-bs-dismiss="modal">
+                                        Update Status
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Update Modal -->
+                    <div class="modal fade" id="statusModal{{ request.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Update Request Status</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('update_request_status', request_id=request.id) }}">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="status" class="form-label">Status</label>
+                                            <select class="form-select" id="status" name="status" required>
+                                                <option value="pending" {% if request.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                <option value="confirmed" {% if request.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                                <option value="completed" {% if request.status == 'completed' %}selected{% endif %}>Completed</option>
+                                                <option value="cancelled" {% if request.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Update Status</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No service requests found</h5>
+            <p class="text-muted">Start by creating your first service request.</p>
+            <a href="{{ url_for('add_request') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Create First Request
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

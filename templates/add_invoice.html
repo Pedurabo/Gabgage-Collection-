@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Add Invoice - Garbage Collection & Disposal Firm{% endblock %}
+
+{% block page_title %}Add Invoice{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h4><i class="fas fa-file-invoice me-2"></i>Create New Invoice</h4>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('invoices') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Invoices
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-plus me-2"></i>Invoice Details
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('add_invoice') }}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="customer_id" class="form-label">Customer</label>
+                        <select class="form-select" id="customer_id" name="customer_id" required>
+                            <option value="">Select Customer</option>
+                            <!-- Customer options will be populated dynamically -->
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="invoice_number" class="form-label">Invoice Number</label>
+                        <input type="text" class="form-control" id="invoice_number" name="invoice_number" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="invoice_date" class="form-label">Invoice Date</label>
+                        <input type="date" class="form-control" id="invoice_date" name="invoice_date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="due_date" class="form-label">Due Date</label>
+                        <input type="date" class="form-control" id="due_date" name="due_date" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="service_type" class="form-label">Service Type</label>
+                        <select class="form-select" id="service_type" name="service_type" required>
+                            <option value="">Select Service</option>
+                            <option value="regular_pickup">Regular Pickup</option>
+                            <option value="bulk_waste">Bulk Waste</option>
+                            <option value="recycling">Recycling</option>
+                            <option value="hazardous_waste">Hazardous Waste</option>
+                            <option value="special_collection">Special Collection</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="amount" name="amount" step="0.01" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tax_rate" class="form-label">Tax Rate (%)</label>
+                        <input type="number" class="form-control" id="tax_rate" name="tax_rate" step="0.01" value="0.00">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="draft">Draft</option>
+                            <option value="sent">Sent</option>
+                            <option value="paid">Paid</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter invoice description..."></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Additional notes..."></textarea>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-secondary me-md-2" onclick="history.back()">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Create Invoice
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

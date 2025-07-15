@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Route{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-route"></i> Add New Route
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Route Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           placeholder="e.g., Downtown Route" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="area_covered" class="form-label">Area Covered</label>
+                                    <input type="text" class="form-control" id="area_covered" name="area_covered" 
+                                           placeholder="e.g., Downtown Business District">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="estimated_duration" class="form-label">Estimated Duration (hours)</label>
+                                    <input type="number" class="form-control" id="estimated_duration" name="estimated_duration" 
+                                           step="0.5" min="0" placeholder="e.g., 6.5">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="vehicle_id" class="form-label">Assign Vehicle</label>
+                                    <select class="form-select" id="vehicle_id" name="vehicle_id">
+                                        <option value="">Select Vehicle</option>
+                                        {% for vehicle in vehicles %}
+                                        <option value="{{ vehicle.id }}">
+                                            {{ vehicle.vehicle_number }} - {{ vehicle.vehicle_type }} ({{ vehicle.capacity }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="driver_id" class="form-label">Assign Driver</label>
+                                    <select class="form-select" id="driver_id" name="driver_id">
+                                        <option value="">Select Driver</option>
+                                        {% for employee in employees %}
+                                        <option value="{{ employee.id }}">
+                                            {{ employee.name }} ({{ employee.role }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Route Status</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="maintenance">Maintenance</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Route Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Describe the route, special instructions, or notes..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('routes') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Route
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

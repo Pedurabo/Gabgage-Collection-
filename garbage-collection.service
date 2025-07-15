@@ -1,0 +1,24 @@
+[Unit]
+Description=Garbage Collection Management System
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=exec
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/garbage-collection
+Environment=PATH=/opt/garbage-collection/venv/bin
+ExecStart=/opt/garbage-collection/venv/bin/gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 --access-logfile /var/log/garbage-collection/access.log --error-logfile /var/log/garbage-collection/error.log wsgi:app
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=5
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/garbage-collection/logs /opt/garbage-collection/uploads /opt/garbage-collection/instance
+
+[Install]
+WantedBy=multi-user.target 

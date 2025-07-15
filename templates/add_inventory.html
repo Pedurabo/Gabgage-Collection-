@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Add Inventory Item{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-box"></i> Add Inventory Item
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="item_name" class="form-label">Item Name</label>
+                                    <input type="text" class="form-control" id="item_name" name="item_name" 
+                                           placeholder="e.g., Oil Filter, Safety Gloves" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Category</label>
+                                    <select class="form-select" id="category" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="parts">Parts</option>
+                                        <option value="supplies">Supplies</option>
+                                        <option value="safety_equipment">Safety Equipment</option>
+                                        <option value="tools">Tools</option>
+                                        <option value="consumables">Consumables</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" id="quantity" name="quantity" 
+                                           min="0" value="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="unit_price" class="form-label">Unit Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="unit_price" name="unit_price" 
+                                               step="0.01" min="0" placeholder="0.00">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="supplier" class="form-label">Supplier</label>
+                                    <input type="text" class="form-control" id="supplier" name="supplier" 
+                                           placeholder="e.g., Auto Parts Co, Safety Supply Inc">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reorder_level" class="form-label">Reorder Level</label>
+                                    <input type="number" class="form-control" id="reorder_level" name="reorder_level" 
+                                           min="0" value="10">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Storage Location</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   placeholder="e.g., Warehouse A, Shelf B3, Tool Room">
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('inventory') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="fas fa-save"></i> Add Item
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

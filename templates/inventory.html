@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-boxes text-secondary"></i>
+                    Inventory Management
+                </h2>
+                <a href="{{ url_for('add_inventory_item') }}" class="btn btn-secondary">
+                    <i class="fas fa-plus"></i> Add Item
+                </a>
+            </div>
+
+            <!-- Inventory Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-secondary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Items</h6>
+                                    <h3 class="mb-0">{{ inventory_items|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-boxes fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Low Stock Items</h6>
+                                    <h3 class="mb-0">{{ inventory_items|selectattr('quantity', 'le', 'reorder_level')|list|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Value</h6>
+                                    <h3 class="mb-0">${{ "%.2f"|format(total_value) }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-dollar-sign fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Categories</h6>
+                                    <h3 class="mb-0">{{ categories|length }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-tags fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Table -->
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> All Inventory Items
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Category</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total Value</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in inventory_items %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>{{ item.item_name }}</strong>
+                                            {% if item.supplier %}
+                                                <br>
+                                                <small class="text-muted">Supplier: {{ item.supplier }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'primary' if item.category == 'parts' else 'success' if item.category == 'supplies' else 'warning' if item.category == 'safety_equipment' else 'secondary' }}">
+                                            {{ item.category.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold {{ 'text-danger' if item.quantity <= item.reorder_level else '' }}">
+                                                {{ item.quantity }}
+                                            </span>
+                                            {% if item.quantity <= item.reorder_level %}
+                                                <i class="fas fa-exclamation-triangle text-warning ms-2"></i>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if item.unit_price %}
+                                            <span class="text-success">${{ "%.2f"|format(item.unit_price) }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.unit_price %}
+                                            <span class="fw-bold">${{ "%.2f"|format(item.quantity * item.unit_price) }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">{{ item.location or 'Not specified' }}</span>
+                                    </td>
+                                    <td>
+                                        {% if item.quantity <= item.reorder_level %}
+                                            <span class="badge bg-danger">Low Stock</span>
+                                        {% elif item.quantity <= item.reorder_level * 2 %}
+                                            <span class="badge bg-warning">Medium Stock</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Good Stock</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-info" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#inventoryModal{{ item.id }}">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <a href="#" class="btn btn-sm btn-outline-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Detail Modals -->
+{% for item in inventory_items %}
+<div class="modal fade" id="inventoryModal{{ item.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-box"></i> Inventory Item Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Item Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Item Name:</strong></td>
+                                <td>{{ item.item_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Category:</strong></td>
+                                <td>{{ item.category.replace('_', ' ').title() }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Quantity:</strong></td>
+                                <td>{{ item.quantity }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Unit Price:</strong></td>
+                                <td>${{ "%.2f"|format(item.unit_price) if item.unit_price else 'Not set' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Value:</strong></td>
+                                <td>${{ "%.2f"|format(item.quantity * item.unit_price) if item.unit_price else 'Not calculated' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Stock Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Reorder Level:</strong></td>
+                                <td>{{ item.reorder_level }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Location:</strong></td>
+                                <td>{{ item.location or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Supplier:</strong></td>
+                                <td>{{ item.supplier or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Created:</strong></td>
+                                <td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Stock Status:</strong></td>
+                                <td>
+                                    {% if item.quantity <= item.reorder_level %}
+                                        <span class="badge bg-danger">Low Stock</span>
+                                    {% elif item.quantity <= item.reorder_level * 2 %}
+                                        <span class="badge bg-warning">Medium Stock</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Good Stock</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if item.quantity <= item.reorder_level %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Low Stock Alert:</strong> This item is below the reorder level. 
+                            Consider placing an order with {{ item.supplier or 'the supplier' }}.
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Edit Item
+                </a>
+                <a href="#" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Add Stock
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %} 

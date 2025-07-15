@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}Predictive Maintenance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-robot text-info"></i>
+                    AI-Powered Predictive Maintenance
+                </h2>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-info" onclick="runPredictions()">
+                        <i class="fas fa-brain"></i> Run AI Analysis
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportMaintenanceReport()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Maintenance Alerts Dashboard -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Critical Alerts</h6>
+                                    <h3 class="mb-0" id="criticalAlerts">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">High Priority</h6>
+                                    <h3 class="mb-0" id="highPriority">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-exclamation-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Medium Priority</h6>
+                                    <h3 class="mb-0" id="mediumPriority">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Healthy Components</h6>
+                                    <h3 class="mb-0" id="healthyComponents">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Alerts -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bell"></i> Maintenance Alerts
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="maintenanceAlerts">
+                                {% for alert in maintenance_alerts %}
+                                <div class="alert alert-{{ 'danger' if alert.priority == 'critical' else 'warning' if alert.priority == 'high' else 'info' }} alert-dismissible fade show" role="alert">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="alert-heading">
+                                                <i class="fas fa-{{ 'exclamation-triangle' if alert.priority == 'critical' else 'exclamation-circle' if alert.priority == 'high' else 'info-circle' }}"></i>
+                                                {{ alert.component }} - {{ alert.vehicle.vehicle_number }}
+                                            </h6>
+                                            <p class="mb-1">{{ alert.recommended_action }}</p>
+                                            <small class="text-muted">
+                                                Condition: <span class="badge bg-{{ 'danger' if alert.current_condition == 'critical' else 'warning' if alert.current_condition == 'poor' else 'info' }}">{{ alert.current_condition.title() }}</span> |
+                                                Confidence: {{ "%.0f"|format(alert.confidence_level * 100) }}% |
+                                                Predicted Failure: {{ alert.predicted_failure_date.strftime('%Y-%m-%d') }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-{{ 'danger' if alert.priority == 'critical' else 'warning' if alert.priority == 'high' else 'info' }}">{{ alert.priority.title() }}</span>
+                                            <br>
+                                            <small class="text-muted">{{ alert.created_at.strftime('%Y-%m-%d') }}</small>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie"></i> Component Health
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="componentHealthChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fleet Health Overview -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-truck"></i> Fleet Health Overview
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Vehicle</th>
+                                            <th>Component</th>
+                                            <th>Condition</th>
+                                            <th>Confidence</th>
+                                            <th>Predicted Failure</th>
+                                            <th>Priority</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for alert in maintenance_alerts %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ alert.vehicle.vehicle_number }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ alert.vehicle.vehicle_type }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ alert.component }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ 'danger' if alert.current_condition == 'critical' else 'warning' if alert.current_condition == 'poor' else 'info' }}">
+                                                    {{ alert.current_condition.title() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar bg-{{ 'success' if alert.confidence_level > 0.8 else 'warning' if alert.confidence_level > 0.6 else 'danger' }}" 
+                                                         style="width: {{ alert.confidence_level * 100 }}%">
+                                                        {{ "%.0f"|format(alert.confidence_level * 100) }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-{{ 'danger' if alert.predicted_failure_date < today + timedelta(days=7) else 'warning' if alert.predicted_failure_date < today + timedelta(days=30) else 'info' }}">
+                                                    {{ alert.predicted_failure_date.strftime('%Y-%m-%d') }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ 'danger' if alert.priority == 'critical' else 'warning' if alert.priority == 'high' else 'info' }}">
+                                                    {{ alert.priority.title() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="scheduleMaintenance({{ alert.id }})">
+                                                        <i class="fas fa-calendar-plus"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-success" onclick="markResolved({{ alert.id }})">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-info" onclick="viewDetails({{ alert.id }})">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Details Modal -->
+<div class="modal fade" id="maintenanceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-tools"></i> Maintenance Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="maintenanceDetails">
+                <!-- Details will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let componentHealthChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    updateAlertCounts();
+});
+
+function initializeCharts() {
+    const ctx = document.getElementById('componentHealthChart').getContext('2d');
+    componentHealthChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Critical', 'Poor', 'Fair', 'Good'],
+            datasets: [{
+                data: [0, 0, 0, 0],
+                backgroundColor: [
+                    'rgb(220, 53, 69)',
+                    'rgb(255, 193, 7)',
+                    'rgb(23, 162, 184)',
+                    'rgb(40, 167, 69)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function updateAlertCounts() {
+    const critical = document.querySelectorAll('.alert-danger').length;
+    const high = document.querySelectorAll('.alert-warning').length;
+    const medium = document.querySelectorAll('.alert-info').length;
+    const healthy = 0; // This would be calculated from total vehicles - alerts
+    
+    document.getElementById('criticalAlerts').textContent = critical;
+    document.getElementById('highPriority').textContent = high;
+    document.getElementById('mediumPriority').textContent = medium;
+    document.getElementById('healthyComponents').textContent = healthy;
+    
+    // Update chart
+    componentHealthChart.data.datasets[0].data = [critical, high, medium, healthy];
+    componentHealthChart.update();
+}
+
+function runPredictions() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+    button.disabled = true;
+    
+    fetch('/api/maintenance/predict')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Predictions:', data);
+            // Reload page to show new predictions
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Error running predictions:', error);
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+}
+
+function scheduleMaintenance(alertId) {
+    // Implementation for scheduling maintenance
+    console.log('Scheduling maintenance for alert:', alertId);
+    alert('Maintenance scheduling feature will be implemented here.');
+}
+
+function markResolved(alertId) {
+    // Implementation for marking alert as resolved
+    console.log('Marking alert as resolved:', alertId);
+    alert('Alert resolution feature will be implemented here.');
+}
+
+function viewDetails(alertId) {
+    // Implementation for viewing detailed maintenance information
+    console.log('Viewing details for alert:', alertId);
+    $('#maintenanceModal').modal('show');
+}
+
+function exportMaintenanceReport() {
+    // Implementation for exporting maintenance report
+    console.log('Exporting maintenance report...');
+    alert('Report export feature will be implemented here.');
+}
+</script>
+{% endblock %} 

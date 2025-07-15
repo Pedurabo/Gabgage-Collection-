@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Add Employee - EcoClean{% endblock %}
+
+{% block page_title %}Add New Employee{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-plus me-2"></i>Employee Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_employee') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone Number *</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="role" class="form-label">Role *</label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="">Select role...</option>
+                                <option value="driver">Driver</option>
+                                <option value="collector">Collector</option>
+                                <option value="supervisor">Supervisor</option>
+                                <option value="manager">Manager</option>
+                                <option value="admin">Administrator</option>
+                                <option value="technician">Technician</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="department_id" class="form-label">Department</label>
+                            <select class="form-select" id="department_id" name="department_id">
+                                <option value="">Select department...</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="hire_date" class="form-label">Hire Date</label>
+                            <input type="date" class="form-control" id="hire_date" name="hire_date">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="salary" class="form-label">Salary ($)</label>
+                            <input type="number" class="form-control" id="salary" name="salary" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="emergency_contact" class="form-label">Emergency Contact</label>
+                            <input type="text" class="form-control" id="emergency_contact" name="emergency_contact" placeholder="Emergency contact name">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="emergency_phone" class="form-label">Emergency Phone</label>
+                            <input type="tel" class="form-control" id="emergency_phone" name="emergency_phone" placeholder="Emergency contact phone">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="certifications" class="form-label">Certifications</label>
+                            <input type="text" class="form-control" id="certifications" name="certifications" placeholder="CDL, Safety, etc.">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="notes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Special skills, certifications, or other relevant information..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('employees') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Employees
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Add Employee
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Role Descriptions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Operational Roles</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Driver:</strong> Operates collection vehicles and ensures safe transport</li>
+                            <li><strong>Collector:</strong> Handles waste collection and loading operations</li>
+                            <li><strong>Supervisor:</strong> Manages teams and oversees daily operations</li>
+                            <li><strong>Technician:</strong> Maintains vehicles and equipment</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Management Roles</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Manager:</strong> Department and operational management</li>
+                            <li><strong>Administrator:</strong> Administrative tasks and customer service</li>
+                            <li><strong>Supervisor:</strong> Team leadership and coordination</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default hire date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('hire_date').value = today;
+    
+    // Form validation
+    const form = document.querySelector('form');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
+    const roleSelect = document.getElementById('role');
+    const salaryInput = document.getElementById('salary');
+    
+    // Email validation
+    emailInput.addEventListener('blur', function() {
+        const email = this.value;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (email && !emailRegex.test(email)) {
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+    
+    // Phone validation
+    phoneInput.addEventListener('blur', function() {
+        const phone = this.value;
+        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+        
+        if (phone && !phoneRegex.test(phone.replace(/\s/g, ''))) {
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+    
+    // Auto-fill department based on role
+    roleSelect.addEventListener('change', function() {
+        const departments = {
+            'driver': 'Operations',
+            'collector': 'Operations',
+            'supervisor': 'Operations',
+            'technician': 'Maintenance',
+            'manager': 'Administration',
+            'admin': 'Administration'
+        };
+        
+        if (this.value && departments[this.value]) {
+            const deptSelect = document.getElementById('department_id');
+            for (let option of deptSelect.options) {
+                if (option.text === departments[this.value]) {
+                    deptSelect.value = option.value;
+                    break;
+                }
+            }
+        }
+    });
+    
+    // Salary validation
+    salaryInput.addEventListener('blur', function() {
+        const salary = parseFloat(this.value);
+        if (this.value && (isNaN(salary) || salary < 0)) {
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,666 @@
+{% extends "base.html" %}
+
+{% block title %}Task Management - Garbage Collection System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-tasks text-primary me-2"></i>Task Management
+                    </h1>
+                    <p class="text-muted">Manage and track operational tasks across departments</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                        <i class="fas fa-plus me-2"></i>Add Task
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="refreshTasks()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Tasks
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalTasks">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending Tasks
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pendingTasks">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Completed Today
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="completedToday">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Overdue Tasks
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="overdueTasks">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Filters & Search</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="statusFilter" class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="priorityFilter" class="form-label">Priority</label>
+                            <select class="form-select" id="priorityFilter">
+                                <option value="">All Priorities</option>
+                                <option value="low">Low</option>
+                                <option value="normal">Normal</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="assignedFilter" class="form-label">Assigned To</label>
+                            <select class="form-select" id="assignedFilter">
+                                <option value="">All Users</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.get_full_name() }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="searchInput" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search tasks...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Tasks</h6>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterTasks()">
+                            <i class="fas fa-filter me-1"></i>Filter
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="tasksTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Assigned To</th>
+                                    <th>Due Date</th>
+                                    <th>Department</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                <tr class="task-row" data-task-id="{{ task.id }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="task-icon me-2">
+                                                {% if task.priority == 'urgent' %}
+                                                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                                                {% elif task.priority == 'high' %}
+                                                    <i class="fas fa-exclamation-circle text-warning"></i>
+                                                {% elif task.priority == 'normal' %}
+                                                    <i class="fas fa-circle text-info"></i>
+                                                {% else %}
+                                                    <i class="fas fa-circle text-secondary"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ task.title }}</div>
+                                                <small class="text-muted">{{ task.description[:50] }}{% if task.description|length > 50 %}...{% endif %}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if task.priority == 'urgent' else 'warning' if task.priority == 'high' else 'info' if task.priority == 'normal' else 'secondary' }}">
+                                            {{ task.priority|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if task.status == 'completed' else 'warning' if task.status == 'in_progress' else 'danger' if task.status == 'cancelled' else 'secondary' }}">
+                                            {{ task.status|replace('_', ' ')|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if task.assigned_to %}
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-2">
+                                                    <i class="fas fa-user-circle fa-lg text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ task.assigned_to.get_full_name() }}</div>
+                                                    <small class="text-muted">{{ task.assigned_to.role|title }}</small>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Unassigned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if task.due_date %}
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-calendar-alt me-1 text-muted"></i>
+                                                <span class="{{ 'text-danger fw-bold' if task.is_overdue() else '' }}">
+                                                    {{ task.due_date.strftime('%Y-%m-%d') }}
+                                                </span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">No due date</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if task.department %}
+                                            <span class="badge bg-light text-dark">{{ task.department.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="viewTask({{ task.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if current_user.role in ['super_admin', 'department_admin', 'manager'] %}
+                                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="editTask({{ task.id }})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if task.status != 'completed' and (current_user.role in ['super_admin', 'department_admin'] or task.assigned_to_id == current_user.id) %}
+                                            <button type="button" class="btn btn-sm btn-outline-success" onclick="completeTask({{ task.id }})">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if current_user.role in ['super_admin', 'department_admin'] %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteTask({{ task.id }})">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalLabel">
+                    <i class="fas fa-plus text-primary me-2"></i>Add New Task
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('add_task') }}" method="POST">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="title" class="form-label">Task Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="priority" class="form-label">Priority *</label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="low">Low</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="assigned_to_id" class="form-label">Assign To</label>
+                            <select class="form-select" id="assigned_to_id" name="assigned_to_id">
+                                <option value="">Select User</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.get_full_name() }} ({{ user.role|title }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="service_request_id" class="form-label">Related Service Request</label>
+                            <select class="form-select" id="service_request_id" name="service_request_id">
+                                <option value="">Select Service Request</option>
+                                {% for request in service_requests %}
+                                <option value="{{ request.id }}">#{{ request.id }} - {{ request.service_type|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="vehicle_id" class="form-label">Related Vehicle</label>
+                            <select class="form-select" id="vehicle_id" name="vehicle_id">
+                                <option value="">Select Vehicle</option>
+                                {% for vehicle in vehicles %}
+                                <option value="{{ vehicle.id }}">{{ vehicle.vehicle_number }} ({{ vehicle.vehicle_type|title }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Create Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Task Details Modal -->
+<div class="modal fade" id="taskDetailsModal" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskDetailsModalLabel">
+                    <i class="fas fa-tasks text-primary me-2"></i>Task Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="taskDetailsContent">
+                <!-- Task details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Task management JavaScript
+let currentTasks = [];
+
+// Load tasks on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadTasks();
+    updateStatistics();
+});
+
+// Load tasks from API
+function loadTasks() {
+    fetch('/api/tasks')
+        .then(response => response.json())
+        .then(data => {
+            currentTasks = data;
+            updateTasksTable(data);
+            updateStatistics();
+        })
+        .catch(error => {
+            console.error('Error loading tasks:', error);
+            showNotification('Error loading tasks', 'error');
+        });
+}
+
+// Update tasks table
+function updateTasksTable(tasks) {
+    const tbody = document.querySelector('#tasksTable tbody');
+    tbody.innerHTML = '';
+    
+    tasks.forEach(task => {
+        const row = createTaskRow(task);
+        tbody.appendChild(row);
+    });
+}
+
+// Create task row
+function createTaskRow(task) {
+    const row = document.createElement('tr');
+    row.className = 'task-row';
+    row.setAttribute('data-task-id', task.id);
+    
+    const priorityClass = getPriorityClass(task.priority);
+    const statusClass = getStatusClass(task.status);
+    const overdueClass = task.is_overdue ? 'text-danger fw-bold' : '';
+    
+    row.innerHTML = `
+        <td>
+            <div class="d-flex align-items-center">
+                <div class="task-icon me-2">
+                    <i class="fas ${getPriorityIcon(task.priority)}"></i>
+                </div>
+                <div>
+                    <div class="fw-bold">${task.title}</div>
+                    <small class="text-muted">${task.description || 'No description'}</small>
+                </div>
+            </div>
+        </td>
+        <td>
+            <span class="badge bg-${priorityClass}">${task.priority}</span>
+        </td>
+        <td>
+            <span class="badge bg-${statusClass}">${task.status.replace('_', ' ')}</span>
+        </td>
+        <td>${task.assigned_to || 'Unassigned'}</td>
+        <td>
+            <div class="d-flex align-items-center">
+                <i class="fas fa-calendar-alt me-1 text-muted"></i>
+                <span class="${overdueClass}">${task.due_date || 'No due date'}</span>
+            </div>
+        </td>
+        <td>
+            <span class="badge bg-light text-dark">${task.department || '-'}</span>
+        </td>
+        <td>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="viewTask(${task.id})">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-warning" onclick="editTask(${task.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="completeTask(${task.id})">
+                    <i class="fas fa-check"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteTask(${task.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </td>
+    `;
+    
+    return row;
+}
+
+// Get priority class
+function getPriorityClass(priority) {
+    switch(priority) {
+        case 'urgent': return 'danger';
+        case 'high': return 'warning';
+        case 'normal': return 'info';
+        default: return 'secondary';
+    }
+}
+
+// Get status class
+function getStatusClass(status) {
+    switch(status) {
+        case 'completed': return 'success';
+        case 'in_progress': return 'warning';
+        case 'cancelled': return 'danger';
+        default: return 'secondary';
+    }
+}
+
+// Get priority icon
+function getPriorityIcon(priority) {
+    switch(priority) {
+        case 'urgent': return 'fa-exclamation-triangle text-danger';
+        case 'high': return 'fa-exclamation-circle text-warning';
+        case 'normal': return 'fa-circle text-info';
+        default: return 'fa-circle text-secondary';
+    }
+}
+
+// Update statistics
+function updateStatistics() {
+    const total = currentTasks.length;
+    const pending = currentTasks.filter(t => t.status === 'pending').length;
+    const completed = currentTasks.filter(t => t.status === 'completed').length;
+    const overdue = currentTasks.filter(t => t.is_overdue).length;
+    
+    document.getElementById('totalTasks').textContent = total;
+    document.getElementById('pendingTasks').textContent = pending;
+    document.getElementById('completedToday').textContent = completed;
+    document.getElementById('overdueTasks').textContent = overdue;
+}
+
+// Filter tasks
+function filterTasks() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const priorityFilter = document.getElementById('priorityFilter').value;
+    const assignedFilter = document.getElementById('assignedFilter').value;
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    
+    let filteredTasks = currentTasks.filter(task => {
+        const statusMatch = !statusFilter || task.status === statusFilter;
+        const priorityMatch = !priorityFilter || task.priority === priorityFilter;
+        const assignedMatch = !assignedFilter || task.assigned_to_id == assignedFilter;
+        const searchMatch = !searchInput || 
+            task.title.toLowerCase().includes(searchInput) ||
+            (task.description && task.description.toLowerCase().includes(searchInput));
+        
+        return statusMatch && priorityMatch && assignedMatch && searchMatch;
+    });
+    
+    updateTasksTable(filteredTasks);
+}
+
+// Clear filters
+function clearFilters() {
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('priorityFilter').value = '';
+    document.getElementById('assignedFilter').value = '';
+    document.getElementById('searchInput').value = '';
+    updateTasksTable(currentTasks);
+}
+
+// View task details
+function viewTask(taskId) {
+    const task = currentTasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    const modal = new bootstrap.Modal(document.getElementById('taskDetailsModal'));
+    const content = document.getElementById('taskDetailsContent');
+    
+    content.innerHTML = `
+        <div class="row">
+            <div class="col-md-8">
+                <h5>${task.title}</h5>
+                <p class="text-muted">${task.description || 'No description provided'}</p>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Task Information</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Status:</strong> <span class="badge bg-${getStatusClass(task.status)}">${task.status}</span></li>
+                            <li><strong>Priority:</strong> <span class="badge bg-${getPriorityClass(task.priority)}">${task.priority}</span></li>
+                            <li><strong>Assigned To:</strong> ${task.assigned_to || 'Unassigned'}</li>
+                            <li><strong>Created By:</strong> ${task.created_by}</li>
+                            <li><strong>Department:</strong> ${task.department || '-'}</li>
+                            <li><strong>Due Date:</strong> ${task.due_date || 'No due date'}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modal.show();
+}
+
+// Edit task
+function editTask(taskId) {
+    window.location.href = `/tasks/${taskId}/edit`;
+}
+
+// Complete task
+function completeTask(taskId) {
+    if (confirm('Mark this task as completed?')) {
+        fetch(`/tasks/${taskId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Task completed successfully!', 'success');
+                loadTasks();
+            } else {
+                showNotification(data.message || 'Error completing task', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error completing task:', error);
+            showNotification('Error completing task', 'error');
+        });
+    }
+}
+
+// Delete task
+function deleteTask(taskId) {
+    if (confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+        fetch(`/tasks/${taskId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Task deleted successfully!', 'success');
+                loadTasks();
+            } else {
+                showNotification(data.message || 'Error deleting task', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting task:', error);
+            showNotification('Error deleting task', 'error');
+        });
+    }
+}
+
+// Refresh tasks
+function refreshTasks() {
+    loadTasks();
+    showNotification('Tasks refreshed', 'info');
+}
+
+// Show notification
+function showNotification(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Event listeners
+document.getElementById('statusFilter').addEventListener('change', filterTasks);
+document.getElementById('priorityFilter').addEventListener('change', filterTasks);
+document.getElementById('assignedFilter').addEventListener('change', filterTasks);
+document.getElementById('searchInput').addEventListener('input', filterTasks);
+</script>
+{% endblock %} 

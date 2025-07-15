@@ -1,0 +1,868 @@
+{% extends "base.html" %}
+
+{% block title %}Comprehensive Reports & Analytics - EcoClean{% endblock %}
+
+{% block page_title %}Reports & Analytics Dashboard{% endblock %}
+
+{% block content %}
+<!-- Modern Dashboard Header -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="mb-2"><i class="fas fa-chart-line me-3 text-primary"></i>Business Intelligence Dashboard</h2>
+        <p class="text-muted mb-0">Comprehensive analytics and reporting for data-driven decision making</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-primary me-2" onclick="generateComprehensiveReport()">
+            <i class="fas fa-sync-alt me-2"></i>Refresh Data
+        </button>
+        <button class="btn btn-success" onclick="exportAllReports()">
+            <i class="fas fa-download me-2"></i>Export All
+        </button>
+    </div>
+</div>
+
+<!-- Quick Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-dollar-sign fa-2x text-primary"></i>
+                </div>
+                <h3 class="mb-1" id="totalRevenue">$0</h3>
+                <p class="text-muted mb-0">Total Revenue</p>
+                <small class="text-success" id="revenueGrowth">+0% vs last month</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mb-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-tasks fa-2x text-success"></i>
+                </div>
+                <h3 class="mb-1" id="totalRequests">0</h3>
+                <p class="text-muted mb-0">Service Requests</p>
+                <small class="text-info" id="completionRate">0% completion rate</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-circle mb-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-users fa-2x text-warning"></i>
+                </div>
+                <h3 class="mb-1" id="totalCustomers">0</h3>
+                <p class="text-muted mb-0">Active Customers</p>
+                <small class="text-success" id="customerGrowth">+0 new this month</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 rounded-circle mb-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-truck fa-2x text-info"></i>
+                </div>
+                <h3 class="mb-1" id="fleetUtilization">0%</h3>
+                <p class="text-muted mb-0">Fleet Utilization</p>
+                <small class="text-primary" id="avgResponseTime">0 min avg response</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Navigation Tabs -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <ul class="nav nav-tabs card-header-tabs" id="reportTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                            <i class="fas fa-chart-pie me-2"></i>Overview
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="revenue-tab" data-bs-toggle="tab" data-bs-target="#revenue" type="button" role="tab">
+                            <i class="fas fa-dollar-sign me-2"></i>Revenue Analysis
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="operations-tab" data-bs-toggle="tab" data-bs-target="#operations" type="button" role="tab">
+                            <i class="fas fa-cogs me-2"></i>Operations
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">
+                            <i class="fas fa-users me-2"></i>Customer Insights
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="fleet-tab" data-bs-toggle="tab" data-bs-target="#fleet" type="button" role="tab">
+                            <i class="fas fa-truck me-2"></i>Fleet Performance
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="reportTabContent">
+                    <!-- Overview Tab -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Revenue Trend (Last 12 Months)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="revenueTrendChart" height="100"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-doughnut me-2"></i>Service Distribution</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="serviceDistributionChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-lg-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Monthly Performance</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="monthlyPerformanceChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Customer Growth</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="customerGrowthChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Revenue Analysis Tab -->
+                    <div class="tab-pane fade" id="revenue" role="tabpanel">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Revenue Breakdown</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="revenueBreakdownChart" height="100"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Top Revenue Sources</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm" id="topRevenueTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Source</th>
+                                                        <th>Revenue</th>
+                                                        <th>%</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Operations Tab -->
+                    <div class="tab-pane fade" id="operations" role="tabpanel">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Request Status Distribution</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="requestStatusChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Response Time Trends</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="responseTimeChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Department Performance</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="departmentPerformanceTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Department</th>
+                                                        <th>Requests Handled</th>
+                                                        <th>Avg Response Time</th>
+                                                        <th>Completion Rate</th>
+                                                        <th>Customer Satisfaction</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Insights Tab -->
+                    <div class="tab-pane fade" id="customers" role="tabpanel">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Customer Satisfaction Trends</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="satisfactionChart" height="100"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Customer Types</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="customerTypesChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Top Customers by Revenue</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="topCustomersTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Customer</th>
+                                                        <th>Type</th>
+                                                        <th>Total Revenue</th>
+                                                        <th>Requests</th>
+                                                        <th>Avg Rating</th>
+                                                        <th>Last Service</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fleet Performance Tab -->
+                    <div class="tab-pane fade" id="fleet" role="tabpanel">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Vehicle Utilization</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="vehicleUtilizationChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Maintenance Costs</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="maintenanceCostChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h5 class="mb-0"><i class="fas fa-table me-2"></i>Fleet Performance Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="fleetPerformanceTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Vehicle</th>
+                                                        <th>Type</th>
+                                                        <th>Status</th>
+                                                        <th>Utilization %</th>
+                                                        <th>Distance (km)</th>
+                                                        <th>Maintenance Cost</th>
+                                                        <th>Last Service</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr><td colspan="7" class="text-center text-muted">Loading...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Filters Modal -->
+<div class="modal fade" id="reportFiltersModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-filter me-2"></i>Advanced Report Filters
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="filterDateFrom" class="form-label">Date From</label>
+                            <input type="date" class="form-control" id="filterDateFrom">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="filterDateTo" class="form-label">Date To</label>
+                            <input type="date" class="form-control" id="filterDateTo">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="filterDepartment" class="form-label">Department</label>
+                            <select class="form-select" id="filterDepartment">
+                                <option value="">All Departments</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="filterServiceType" class="form-label">Service Type</label>
+                            <select class="form-select" id="filterServiceType">
+                                <option value="">All Services</option>
+                                <option value="residential">Residential</option>
+                                <option value="commercial">Commercial</option>
+                                <option value="recycling">Recycling</option>
+                                <option value="hazardous">Hazardous</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-download me-2"></i>Export Reports
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="exportFormat" class="form-label">Export Format</label>
+                    <select class="form-select" id="exportFormat">
+                        <option value="pdf">PDF Report</option>
+                        <option value="excel">Excel Spreadsheet</option>
+                        <option value="csv">CSV Data</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="exportSections" class="form-label">Include Sections</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="exportOverview" checked>
+                        <label class="form-check-label" for="exportOverview">Overview & Summary</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="exportRevenue" checked>
+                        <label class="form-check-label" for="exportRevenue">Revenue Analysis</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="exportOperations" checked>
+                        <label class="form-check-label" for="exportOperations">Operations Data</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="exportCustomers" checked>
+                        <label class="form-check-label" for="exportCustomers">Customer Insights</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="exportFleet" checked>
+                        <label class="form-check-label" for="exportFleet">Fleet Performance</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="executeExport()">Export Report</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.nav-tabs .nav-link {
+    border-radius: 8px 8px 0 0;
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #f8f9fa;
+    color: #0d6efd;
+    border-bottom: 3px solid #0d6efd;
+}
+
+.table th {
+    font-weight: 600;
+    color: #495057;
+    border-top: none;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+@media print {
+    .btn, .nav-tabs, .modal {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Global variables for charts
+let charts = {};
+let currentFilters = {};
+
+// Initialize the reporting system
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    loadAllReportData();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    // Tab change events
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            const target = e.target.getAttribute('data-bs-target');
+            loadTabSpecificData(target);
+        });
+    });
+}
+
+function initializeCharts() {
+    // Revenue Trend Chart
+    const revenueCtx = document.getElementById('revenueTrendChart');
+    if (revenueCtx) {
+        charts.revenueTrend = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Service Distribution Chart
+    const serviceCtx = document.getElementById('serviceDistributionChart');
+    if (serviceCtx) {
+        charts.serviceDistribution = new Chart(serviceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Residential', 'Commercial', 'Recycling', 'Hazardous'],
+                datasets: [{
+                    data: [0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgb(75, 192, 192)',
+                        'rgb(255, 205, 86)',
+                        'rgb(255, 99, 132)',
+                        'rgb(54, 162, 235)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // Initialize other charts...
+    initializeOtherCharts();
+}
+
+function initializeOtherCharts() {
+    // Monthly Performance Chart
+    const monthlyCtx = document.getElementById('monthlyPerformanceChart');
+    if (monthlyCtx) {
+        charts.monthlyPerformance = new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Requests',
+                    data: [],
+                    backgroundColor: 'rgba(75, 192, 192, 0.8)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+
+    // Customer Growth Chart
+    const customerCtx = document.getElementById('customerGrowthChart');
+    if (customerCtx) {
+        charts.customerGrowth = new Chart(customerCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Customers',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+}
+
+function loadAllReportData() {
+    // Load overview data
+    loadOverviewData();
+    
+    // Load revenue data
+    loadRevenueData();
+    
+    // Load operations data
+    loadOperationsData();
+    
+    // Load customer data
+    loadCustomerData();
+    
+    // Load fleet data
+    loadFleetData();
+}
+
+function loadOverviewData() {
+    fetch('/api/reports/overview')
+        .then(response => response.json())
+        .then(data => {
+            updateOverviewMetrics(data);
+            updateOverviewCharts(data);
+        })
+        .catch(error => {
+            console.error('Error loading overview data:', error);
+            showError('Failed to load overview data');
+        });
+}
+
+function loadRevenueData() {
+    fetch('/api/reports/revenue-analysis')
+        .then(response => response.json())
+        .then(data => {
+            updateRevenueCharts(data);
+            updateRevenueTable(data);
+        })
+        .catch(error => {
+            console.error('Error loading revenue data:', error);
+            showError('Failed to load revenue data');
+        });
+}
+
+function loadOperationsData() {
+    fetch('/api/reports/operations')
+        .then(response => response.json())
+        .then(data => {
+            updateOperationsCharts(data);
+            updateOperationsTable(data);
+        })
+        .catch(error => {
+            console.error('Error loading operations data:', error);
+            showError('Failed to load operations data');
+        });
+}
+
+function loadCustomerData() {
+    fetch('/api/reports/customer-insights')
+        .then(response => response.json())
+        .then(data => {
+            updateCustomerCharts(data);
+            updateCustomerTable(data);
+        })
+        .catch(error => {
+            console.error('Error loading customer data:', error);
+            showError('Failed to load customer data');
+        });
+}
+
+function loadFleetData() {
+    fetch('/api/reports/fleet-performance')
+        .then(response => response.json())
+        .then(data => {
+            updateFleetCharts(data);
+            updateFleetTable(data);
+        })
+        .catch(error => {
+            console.error('Error loading fleet data:', error);
+            showError('Failed to load fleet data');
+        });
+}
+
+function updateOverviewMetrics(data) {
+    document.getElementById('totalRevenue').textContent = '$' + data.totalRevenue.toLocaleString();
+    document.getElementById('totalRequests').textContent = data.totalRequests.toLocaleString();
+    document.getElementById('totalCustomers').textContent = data.totalCustomers.toLocaleString();
+    document.getElementById('fleetUtilization').textContent = data.fleetUtilization + '%';
+    
+    // Update growth indicators
+    document.getElementById('revenueGrowth').textContent = data.revenueGrowth + '% vs last month';
+    document.getElementById('completionRate').textContent = data.completionRate + '% completion rate';
+    document.getElementById('customerGrowth').textContent = data.customerGrowth + ' new this month';
+    document.getElementById('avgResponseTime').textContent = data.avgResponseTime + ' min avg response';
+}
+
+function updateOverviewCharts(data) {
+    // Update revenue trend chart
+    if (charts.revenueTrend) {
+        charts.revenueTrend.data.labels = data.revenueTrend.labels;
+        charts.revenueTrend.data.datasets[0].data = data.revenueTrend.data;
+        charts.revenueTrend.update();
+    }
+
+    // Update service distribution chart
+    if (charts.serviceDistribution) {
+        charts.serviceDistribution.data.datasets[0].data = data.serviceDistribution;
+        charts.serviceDistribution.update();
+    }
+}
+
+function generateComprehensiveReport() {
+    showLoading('Generating comprehensive report...');
+    loadAllReportData();
+    setTimeout(() => {
+        hideLoading();
+        showSuccess('Report data refreshed successfully');
+    }, 1000);
+}
+
+function exportAllReports() {
+    const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+    exportModal.show();
+}
+
+function executeExport() {
+    const format = document.getElementById('exportFormat').value;
+    const sections = getSelectedExportSections();
+    
+    showLoading('Preparing export...');
+    
+    // Simulate export process
+    setTimeout(() => {
+        hideLoading();
+        showSuccess(`Report exported as ${format.toUpperCase()} successfully`);
+        
+        // Close modal
+        const exportModal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+        exportModal.hide();
+    }, 2000);
+}
+
+function getSelectedExportSections() {
+    const sections = [];
+    if (document.getElementById('exportOverview').checked) sections.push('overview');
+    if (document.getElementById('exportRevenue').checked) sections.push('revenue');
+    if (document.getElementById('exportOperations').checked) sections.push('operations');
+    if (document.getElementById('exportCustomers').checked) sections.push('customers');
+    if (document.getElementById('exportFleet').checked) sections.push('fleet');
+    return sections;
+}
+
+function showLoading(message) {
+    // Implement loading indicator
+    console.log('Loading:', message);
+}
+
+function hideLoading() {
+    // Hide loading indicator
+    console.log('Loading complete');
+}
+
+function showSuccess(message) {
+    // Implement success notification
+    console.log('Success:', message);
+}
+
+function showError(message) {
+    // Implement error notification
+    console.error('Error:', message);
+}
+
+// Placeholder functions for chart updates
+function updateRevenueCharts(data) {
+    console.log('Updating revenue charts with:', data);
+}
+
+function updateRevenueTable(data) {
+    console.log('Updating revenue table with:', data);
+}
+
+function updateOperationsCharts(data) {
+    console.log('Updating operations charts with:', data);
+}
+
+function updateOperationsTable(data) {
+    console.log('Updating operations table with:', data);
+}
+
+function updateCustomerCharts(data) {
+    console.log('Updating customer charts with:', data);
+}
+
+function updateCustomerTable(data) {
+    console.log('Updating customer table with:', data);
+}
+
+function updateFleetCharts(data) {
+    console.log('Updating fleet charts with:', data);
+}
+
+function updateFleetTable(data) {
+    console.log('Updating fleet table with:', data);
+}
+
+function loadTabSpecificData(tabId) {
+    console.log('Loading data for tab:', tabId);
+    // Load specific data based on tab
+}
+</script>
+{% endblock %} 

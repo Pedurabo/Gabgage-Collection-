@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EcoClean - Garbage Collection & Disposal Firm{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        :root {
+            --primary-color: #1a1a2e;
+            --secondary-color: #16213e;
+            --accent-color: #0f3460;
+            --success-color: #00d4aa;
+            --warning-color: #ffa726;
+            --danger-color: #ef5350;
+            --info-color: #42a5f5;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #ecf0f1;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-hover: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-brand {
+            color: var(--light-text);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.25rem 1rem;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--light-text);
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--success-color) 0%, #00b894 100%);
+            color: var(--light-text);
+            box-shadow: var(--shadow);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            background: var(--light-bg);
+            min-height: 100vh;
+        }
+
+        .top-navbar {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .content-area {
+            padding: 2rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: white;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            color: var(--light-text);
+            border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+            border: none;
+        }
+
+        .btn {
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #00b894 100%);
+            border: none;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #ff9800 100%);
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #e53935 100%);
+            border: none;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            color: var(--light-text);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .table {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .table th {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            color: var(--light-text);
+            border: none;
+            font-weight: 600;
+        }
+
+        .badge {
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+
+        .alert {
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-content {
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: var(--shadow-hover);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            color: var(--light-text);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .form-control, .form-select {
+            border-radius: var(--border-radius);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(15, 52, 96, 0.25);
+        }
+
+        .progress {
+            border-radius: 10px;
+            height: 8px;
+        }
+
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-action-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--success-color) 0%, #00b894 100%);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-hover);
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard') }}" class="sidebar-brand">
+                    <i class="fas fa-recycle"></i>
+                    <span>EcoClean</span>
+                </a>
+                <p class="text-white-50 small mt-2 mb-0">Professional Waste Management</p>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'customers' in request.endpoint %}active{% endif %}" href="{{ url_for('customers') }}">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'requests' in request.endpoint %}active{% endif %}" href="{{ url_for('requests') }}">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Service Requests</span>
+                        {% if pending_requests and pending_requests > 0 %}
+                        <span class="notification-badge">{{ pending_requests }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'tasks' in request.endpoint %}active{% endif %}" href="{{ url_for('tasks') }}">
+                        <i class="fas fa-tasks"></i>
+                        <span>Tasks</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'vehicles' in request.endpoint %}active{% endif %}" href="{{ url_for('vehicles') }}">
+                        <i class="fas fa-truck"></i>
+                        <span>Fleet</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'employees' in request.endpoint %}active{% endif %}" href="{{ url_for('employees') }}">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Employees</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'departments' in request.endpoint %}active{% endif %}" href="{{ url_for('get_departments') }}">
+                        <i class="fas fa-building"></i>
+                        <span>Departments</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'billing' in request.endpoint %}active{% endif %}" href="{{ url_for('billing') }}">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>Billing</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'payments' in request.endpoint %}active{% endif %}" href="{{ url_for('payments') }}">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payments</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'routes' in request.endpoint %}active{% endif %}" href="{{ url_for('routes') }}">
+                        <i class="fas fa-route"></i>
+                        <span>Routes</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'schedules' in request.endpoint %}active{% endif %}" href="{{ url_for('schedules') }}">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Schedules</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'inventory' in request.endpoint %}active{% endif %}" href="{{ url_for('inventory') }}">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventory</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a class="nav-link {% if 'reports' in request.endpoint %}active{% endif %}" href="{{ url_for('reports') }}">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <div class="top-navbar">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 text-dark">
+                            <i class="fas fa-recycle me-2 text-primary"></i>
+                            {% block page_title %}EcoClean Management{% endblock %}
+                        </h4>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            <span id="current-time"></span>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-2"></i>Admin
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog me-2"></i>Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Page Content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="floating-action-btn" data-bs-toggle="modal" data-bs-target="#quickActionModal">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Quick Action Modal -->
+    <div class="modal fade" id="quickActionModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <a href="{{ url_for('customers') }}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-user-plus fa-2x mb-2"></i>
+                                <span>Add Customer</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{{ url_for('requests') }}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-clipboard-plus fa-2x mb-2"></i>
+                                <span>New Request</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{{ url_for('vehicles') }}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-truck fa-2x mb-2"></i>
+                                <span>Add Vehicle</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{{ url_for('employees') }}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-user-plus fa-2x mb-2"></i>
+                                <span>Add Employee</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('current-time').textContent = timeString;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('show');
+        }
+
+        // Enhanced click event handlers for real-life functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dashboard quick action buttons
+            document.querySelectorAll('.quick-action-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const action = this.dataset.action;
+                    const url = this.dataset.url;
+                    
+                    if (url) {
+                        window.location.href = url;
+                    } else {
+                        // Handle custom actions
+                        switch(action) {
+                            case 'new_request':
+                                window.garbageCollectionApp.openServiceRequestModal();
+                                break;
+                            case 'add_customer':
+                                window.garbageCollectionApp.openCustomerModal();
+                                break;
+                            case 'schedule_pickup':
+                                window.garbageCollectionApp.openScheduleModal();
+                                break;
+                            case 'generate_report':
+                                window.garbageCollectionApp.generateQuickReport();
+                                break;
+                            case 'track_vehicle':
+                                window.garbageCollectionApp.openVehicleTracking();
+                                break;
+                            case 'process_payment':
+                                window.garbageCollectionApp.openPaymentModal();
+                                break;
+                        }
+                    }
+                });
+            });
+
+            // Customer management interactions
+            document.querySelectorAll('.customer-row').forEach(row => {
+                row.addEventListener('click', function() {
+                    const customerId = this.dataset.customerId;
+                    window.garbageCollectionApp.loadCustomerHistory(customerId);
+                });
+            });
+
+            // Service request interactions
+            document.querySelectorAll('.request-status-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    const requestId = this.dataset.requestId;
+                    const newStatus = this.value;
+                    window.garbageCollectionApp.updateRequestStatus(requestId, newStatus);
+                });
+            });
+
+            // Vehicle management interactions
+            document.querySelectorAll('.vehicle-status-toggle').forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const vehicleId = this.dataset.vehicleId;
+                    const isAvailable = this.checked;
+                    window.garbageCollectionApp.updateVehicleStatus(vehicleId, isAvailable);
+                });
+            });
+
+            // Billing interactions
+            document.querySelectorAll('.process-payment-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const invoiceId = this.dataset.invoiceId;
+                    window.garbageCollectionApp.processPayment(invoiceId);
+                });
+            });
+
+            // Analytics interactions
+            document.querySelectorAll('.generate-report-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const reportType = this.dataset.reportType;
+                    window.garbageCollectionApp.generateReport(reportType);
+                });
+            });
+
+            // Real-time tracking interactions
+            document.querySelectorAll('.track-vehicle-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const vehicleId = this.dataset.vehicleId;
+                    window.garbageCollectionApp.trackVehicle(vehicleId);
+                });
+            });
+
+            // Form submissions with enhanced validation
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+
+            // Table row interactions
+            document.querySelectorAll('.table tbody tr').forEach(row => {
+                row.addEventListener('click', function() {
+                    // Remove active class from all rows
+                    document.querySelectorAll('.table tbody tr').forEach(r => r.classList.remove('table-active'));
+                    // Add active class to clicked row
+                    this.classList.add('table-active');
+                });
+            });
+
+            // Search functionality
+            document.querySelectorAll('.search-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const tableId = this.dataset.table;
+                    const table = document.getElementById(tableId);
+                    
+                    if (table) {
+                        const rows = table.querySelectorAll('tbody tr');
+                        rows.forEach(row => {
+                            const text = row.textContent.toLowerCase();
+                            row.style.display = text.includes(searchTerm) ? '' : 'none';
+                        });
+                    }
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Initialize popovers
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+        });
+
+        // Real-time notifications
+        function setupNotifications() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === 'granted') {
+                        console.log('Notification permission granted');
+                    }
+                });
+            }
+        }
+
+        // Setup notifications on page load
+        document.addEventListener('DOMContentLoaded', setupNotifications);
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

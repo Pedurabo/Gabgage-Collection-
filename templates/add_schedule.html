@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Schedule{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-plus"></i> Add New Schedule
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="customer_id" class="form-label">Customer</label>
+                                    <select class="form-select" id="customer_id" name="customer_id" required>
+                                        <option value="">Select Customer</option>
+                                        {% for customer in customers %}
+                                        <option value="{{ customer.id }}">
+                                            {{ customer.name }} - {{ customer.customer_type.title() }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="service_type" class="form-label">Service Type</label>
+                                    <select class="form-select" id="service_type" name="service_type" required>
+                                        <option value="">Select Service Type</option>
+                                        <option value="pickup">Pickup</option>
+                                        <option value="recycling">Recycling</option>
+                                        <option value="hazardous">Hazardous Waste</option>
+                                        <option value="organic">Organic Waste</option>
+                                        <option value="bulk">Bulk Waste</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="frequency" class="form-label">Frequency</label>
+                                    <select class="form-select" id="frequency" name="frequency" required>
+                                        <option value="">Select Frequency</option>
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="bi-weekly">Bi-Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="day_of_week" class="form-label">Day of Week</label>
+                                    <select class="form-select" id="day_of_week" name="day_of_week">
+                                        <option value="">Select Day</option>
+                                        <option value="0">Monday</option>
+                                        <option value="1">Tuesday</option>
+                                        <option value="2">Wednesday</option>
+                                        <option value="3">Thursday</option>
+                                        <option value="4">Friday</option>
+                                        <option value="5">Saturday</option>
+                                        <option value="6">Sunday</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="time_slot" class="form-label">Time Slot</label>
+                                    <select class="form-select" id="time_slot" name="time_slot">
+                                        <option value="">Select Time Slot</option>
+                                        <option value="morning">Morning (6 AM - 12 PM)</option>
+                                        <option value="afternoon">Afternoon (12 PM - 6 PM)</option>
+                                        <option value="evening">Evening (6 PM - 12 AM)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="start_date" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="start_date" name="start_date" 
+                                           value="{{ today }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="end_date" class="form-label">End Date (Optional)</label>
+                                    <input type="date" class="form-control" id="end_date" name="end_date" 
+                                           placeholder="Leave empty for ongoing schedule">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Schedule Status</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                        <label class="form-check-label" for="is_active">
+                                            Active Schedule
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('schedules') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Create Schedule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const frequencySelect = document.getElementById('frequency');
+    const dayOfWeekSelect = document.getElementById('day_of_week');
+    
+    frequencySelect.addEventListener('change', function() {
+        if (this.value === 'daily') {
+            dayOfWeekSelect.disabled = true;
+            dayOfWeekSelect.value = '';
+        } else {
+            dayOfWeekSelect.disabled = false;
+        }
+    });
+});
+</script>
+{% endblock %} 

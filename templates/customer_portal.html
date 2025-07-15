@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-user-circle text-primary"></i>
+                    Customer Self-Service Portal
+                </h2>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportCustomerData()">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Customer Overview Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Customers</h6>
+                                    <h3 class="mb-0" id="totalCustomers">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Active Services</h6>
+                                    <h3 class="mb-0" id="activeServices">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Pending Requests</h6>
+                                    <h3 class="mb-0" id="pendingRequests">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Avg Rating</h6>
+                                    <h3 class="mb-0" id="avgRating">0.0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-star fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Search and Filters -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-search"></i> Customer Search & Management
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="customerSearch" 
+                                               placeholder="Search customers by name, email, or phone...">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="customerTypeFilter">
+                                        <option value="">All Customer Types</option>
+                                        <option value="residential">Residential</option>
+                                        <option value="commercial">Commercial</option>
+                                        <option value="industrial">Industrial</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="serviceStatusFilter">
+                                        <option value="">All Service Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="pending">Pending</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-primary w-100" onclick="applyFilters()">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer List -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list"></i> Customer Directory
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Customer</th>
+                                            <th>Type</th>
+                                            <th>Services</th>
+                                            <th>Last Service</th>
+                                            <th>Rating</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customerTable">
+                                        <!-- Customer data will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie"></i> Customer Analytics
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="customerAnalyticsChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow mt-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bell"></i> Recent Activities
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="recentActivities">
+                                <!-- Recent activities will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Detail Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user"></i> Customer Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="customerDetails">
+                <!-- Customer details will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let customerAnalyticsChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCustomerAnalytics();
+    loadCustomerData();
+    loadRecentActivities();
+});
+
+function initializeCustomerAnalytics() {
+    const ctx = document.getElementById('customerAnalyticsChart').getContext('2d');
+    customerAnalyticsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Residential', 'Commercial', 'Industrial'],
+            datasets: [{
+                data: [60, 25, 15],
+                backgroundColor: [
+                    'rgb(75, 192, 192)',
+                    'rgb(255, 205, 86)',
+                    'rgb(255, 99, 132)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function loadCustomerData() {
+    // Simulate loading customer data
+    const customers = [
+        {
+            name: 'Downtown Office Complex',
+            type: 'commercial',
+            services: 3,
+            lastService: '2024-01-15',
+            rating: 4.5,
+            status: 'active'
+        },
+        {
+            name: 'Green Valley Apartments',
+            type: 'residential',
+            services: 1,
+            lastService: '2024-01-10',
+            rating: 4.8,
+            status: 'active'
+        },
+        {
+            name: 'Industrial Park Factory',
+            type: 'industrial',
+            services: 2,
+            lastService: '2024-01-12',
+            rating: 4.2,
+            status: 'active'
+        }
+    ];
+    
+    updateCustomerTable(customers);
+    updateCustomerStats(customers);
+}
+
+function updateCustomerTable(customers) {
+    const table = document.getElementById('customerTable');
+    table.innerHTML = '';
+    
+    customers.forEach(customer => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <div>
+                    <strong>${customer.name}</strong>
+                    <br>
+                    <small class="text-muted">${customer.type}</small>
+                </div>
+            </td>
+            <td>
+                <span class="badge bg-${customer.type === 'residential' ? 'primary' : customer.type === 'commercial' ? 'success' : 'warning'}">
+                    ${customer.type}
+                </span>
+            </td>
+            <td>
+                <span class="badge bg-info">${customer.services} services</span>
+            </td>
+            <td>
+                <small class="text-muted">${customer.lastService}</small>
+            </td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <span class="text-warning">
+                        ${'★'.repeat(Math.floor(customer.rating))}${'☆'.repeat(5 - Math.floor(customer.rating))}
+                    </span>
+                    <small class="text-muted ms-1">${customer.rating}</small>
+                </div>
+            </td>
+            <td>
+                <span class="badge bg-${customer.status === 'active' ? 'success' : 'secondary'}">
+                    ${customer.status}
+                </span>
+            </td>
+            <td>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewCustomerDetails('${customer.name}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="scheduleService('${customer.name}')">
+                        <i class="fas fa-calendar-plus"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="contactCustomer('${customer.name}')">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        table.appendChild(row);
+    });
+}
+
+function updateCustomerStats(customers) {
+    document.getElementById('totalCustomers').textContent = customers.length;
+    document.getElementById('activeServices').textContent = customers.filter(c => c.status === 'active').length;
+    document.getElementById('pendingRequests').textContent = customers.filter(c => c.status === 'pending').length;
+    
+    const avgRating = customers.reduce((sum, c) => sum + c.rating, 0) / customers.length;
+    document.getElementById('avgRating').textContent = avgRating.toFixed(1);
+}
+
+function loadRecentActivities() {
+    const activities = [
+        { type: 'service', message: 'Service completed for Downtown Office Complex', time: '2 hours ago' },
+        { type: 'payment', message: 'Payment received from Green Valley Apartments', time: '4 hours ago' },
+        { type: 'request', message: 'New service request from Industrial Park Factory', time: '6 hours ago' },
+        { type: 'rating', message: '5-star rating received from Residential Community', time: '1 day ago' }
+    ];
+    
+    const container = document.getElementById('recentActivities');
+    container.innerHTML = '';
+    
+    activities.forEach(activity => {
+        const div = document.createElement('div');
+        div.className = 'd-flex align-items-start mb-3';
+        div.innerHTML = `
+            <div class="flex-shrink-0">
+                <i class="fas fa-${activity.type === 'service' ? 'check-circle text-success' : activity.type === 'payment' ? 'credit-card text-info' : activity.type === 'request' ? 'plus-circle text-warning' : 'star text-warning'}"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <small class="text-muted">${activity.message}</small>
+                <br>
+                <small class="text-muted">${activity.time}</small>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function applyFilters() {
+    const search = document.getElementById('customerSearch').value;
+    const typeFilter = document.getElementById('customerTypeFilter').value;
+    const statusFilter = document.getElementById('serviceStatusFilter').value;
+    
+    console.log('Applying filters:', { search, typeFilter, statusFilter });
+    // Implementation for filtering customers
+}
+
+function refreshData() {
+    loadCustomerData();
+    loadRecentActivities();
+}
+
+function exportCustomerData() {
+    console.log('Exporting customer data...');
+    alert('Customer data export feature will be implemented here.');
+}
+
+function viewCustomerDetails(customerName) {
+    console.log('Viewing details for:', customerName);
+    $('#customerModal').modal('show');
+}
+
+function scheduleService(customerName) {
+    console.log('Scheduling service for:', customerName);
+    alert('Service scheduling feature will be implemented here.');
+}
+
+function contactCustomer(customerName) {
+    console.log('Contacting customer:', customerName);
+    alert('Customer contact feature will be implemented here.');
+}
+</script>
+{% endblock %} 

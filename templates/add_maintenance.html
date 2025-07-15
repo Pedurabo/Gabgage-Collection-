@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Add Maintenance - EcoClean{% endblock %}
+
+{% block page_title %}Add Maintenance Record{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tools me-2"></i>Maintenance Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_maintenance') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="vehicle_id" class="form-label">Vehicle *</label>
+                            <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                                <option value="">Select vehicle...</option>
+                                {% for vehicle in vehicles %}
+                                <option value="{{ vehicle.id }}">{{ vehicle.vehicle_number }} - {{ vehicle.vehicle_type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="maintenance_type" class="form-label">Maintenance Type *</label>
+                            <select class="form-select" id="maintenance_type" name="maintenance_type" required>
+                                <option value="">Select type...</option>
+                                <option value="routine">Routine Maintenance</option>
+                                <option value="repair">General Repair</option>
+                                <option value="emergency">Emergency Repair</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date_performed" class="form-label">Date Performed *</label>
+                            <input type="date" class="form-control" id="date_performed" name="date_performed" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="performed_by" class="form-label">Performed By</label>
+                            <input type="text" class="form-control" id="performed_by" name="performed_by" placeholder="Technician name">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cost" class="form-label">Cost ($)</label>
+                            <input type="number" class="form-control" id="cost" name="cost" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="next_due_date" class="form-label">Next Due Date</label>
+                            <input type="date" class="form-control" id="next_due_date" name="next_due_date">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Describe the maintenance work performed, parts replaced, or issues addressed..." required></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="notes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Any additional notes, recommendations, or follow-up actions..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('maintenance') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Maintenance
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Add Maintenance Record
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Maintenance Types
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Routine Maintenance</h6>
+                        <ul class="text-muted small">
+                            <li>Oil changes and fluid checks</li>
+                            <li>Tire rotation and inspection</li>
+                            <li>Brake system inspection</li>
+                            <li>Filter replacements</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>General Repairs</h6>
+                        <ul class="text-muted small">
+                            <li>Component replacements</li>
+                            <li>System repairs</li>
+                            <li>Performance improvements</li>
+                            <li>Preventive maintenance</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Emergency Repairs</h6>
+                        <ul class="text-muted small">
+                            <li>Breakdown repairs</li>
+                            <li>Safety-related fixes</li>
+                            <li>Critical system failures</li>
+                            <li>Accident damage</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date_performed').value = today;
+    
+    // Form validation
+    const form = document.querySelector('form');
+    const vehicleSelect = document.getElementById('vehicle_id');
+    const maintenanceTypeSelect = document.getElementById('maintenance_type');
+    const descriptionTextarea = document.getElementById('description');
+    
+    // Auto-fill description based on maintenance type
+    maintenanceTypeSelect.addEventListener('change', function() {
+        const descriptions = {
+            'routine': 'Routine maintenance performed including oil change, fluid checks, tire inspection, and general vehicle inspection.',
+            'repair': 'General repair work performed to address specific issues or component replacements.',
+            'emergency': 'Emergency repair work performed to address critical issues or breakdowns.'
+        };
+        
+        if (this.value && descriptions[this.value]) {
+            descriptionTextarea.value = descriptions[this.value];
+        }
+    });
+    
+    // Auto-calculate next due date for routine maintenance
+    maintenanceTypeSelect.addEventListener('change', function() {
+        if (this.value === 'routine') {
+            const today = new Date();
+            const nextDate = new Date(today);
+            nextDate.setDate(today.getDate() + 30); // 30 days from now
+            document.getElementById('next_due_date').value = nextDate.toISOString().split('T')[0];
+        }
+    });
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Cost validation
+    const costInput = document.getElementById('cost');
+    costInput.addEventListener('blur', function() {
+        const cost = parseFloat(this.value);
+        if (this.value && (isNaN(cost) || cost < 0)) {
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+});
+</script>
+{% endblock %} 

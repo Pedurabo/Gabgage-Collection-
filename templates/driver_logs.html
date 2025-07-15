@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+
+{% block title %}Driver Logs{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-clipboard-list text-primary"></i>
+                    Driver Logs & Compliance
+                </h2>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary" onclick="addDriverLog()">
+                        <i class="fas fa-plus"></i> Add Log Entry
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportDriverReport()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Driver Logs Dashboard -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Active Drivers</h6>
+                                    <h3 class="mb-0" id="activeDrivers">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-user-tie fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Hours</h6>
+                                    <h3 class="mb-0" id="totalHours">0 hrs</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Distance</h6>
+                                    <h3 class="mb-0" id="totalDistance">0 km</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-route fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Fuel Consumed</h6>
+                                    <h3 class="mb-0" id="fuelConsumed">0 L</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-gas-pump fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Driver Logs Table -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list"></i> Driver Log Entries
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Driver</th>
+                                            <th>Vehicle</th>
+                                            <th>Date</th>
+                                            <th>Duration</th>
+                                            <th>Distance</th>
+                                            <th>Fuel Used</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for log in driver_logs %}
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong>{{ log.employee.name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ log.employee.department.name }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <strong>{{ log.vehicle.vehicle_number }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ log.vehicle.vehicle_type }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">{{ log.log_date.strftime('%Y-%m-%d') }}</span>
+                                            </td>
+                                            <td>
+                                                {% if log.start_time and log.end_time %}
+                                                {% set duration = (log.end_time.hour * 60 + log.end_time.minute) - (log.start_time.hour * 60 + log.start_time.minute) %}
+                                                <span class="badge bg-info">{{ duration // 60 }}h {{ duration % 60 }}m</span>
+                                                {% else %}
+                                                <span class="badge bg-warning">In Progress</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if log.total_distance %}
+                                                <strong>{{ "%.1f"|format(log.total_distance) }} km</strong>
+                                                {% else %}
+                                                <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if log.fuel_consumed %}
+                                                <span class="text-warning">{{ "%.1f"|format(log.fuel_consumed) }} L</span>
+                                                {% else %}
+                                                <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if log.status == 'completed' else 'warning' if log.status == 'active' else 'secondary' }}">
+                                                    {{ log.status.title() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-info" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#logModal{{ log.id }}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-success">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar"></i> Driver Performance
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="driverPerformanceChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow mt-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-triangle"></i> Compliance Alerts
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="complianceAlerts">
+                                <!-- Compliance alerts will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compliance Monitoring -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt"></i> Compliance Monitoring
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Hours of Service Compliance</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Driver</th>
+                                                    <th>Today's Hours</th>
+                                                    <th>Weekly Hours</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="hoursComplianceTable">
+                                                <!-- Hours compliance data will be populated here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Break Time Compliance</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Driver</th>
+                                                    <th>Required Breaks</th>
+                                                    <th>Taken Breaks</th>
+                                                    <th>Compliance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="breakComplianceTable">
+                                                <!-- Break compliance data will be populated here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Driver Log Detail Modals -->
+{% for log in driver_logs %}
+<div class="modal fade" id="logModal{{ log.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-clipboard-list"></i> Driver Log Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Driver Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Driver:</strong></td>
+                                <td>{{ log.employee.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Department:</strong></td>
+                                <td>{{ log.employee.department.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>License:</strong></td>
+                                <td>{{ log.employee.license_number or 'Not specified' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Vehicle Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Vehicle:</strong></td>
+                                <td>{{ log.vehicle.vehicle_number }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Type:</strong></td>
+                                <td>{{ log.vehicle.vehicle_type }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if log.vehicle.status == 'available' else 'warning' }}">
+                                        {{ log.vehicle.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Time Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Date:</strong></td>
+                                <td>{{ log.log_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Start Time:</strong></td>
+                                <td>{{ log.start_time.strftime('%H:%M') if log.start_time else 'Not set' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>End Time:</strong></td>
+                                <td>{{ log.end_time.strftime('%H:%M') if log.end_time else 'Not set' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if log.status == 'completed' else 'warning' if log.status == 'active' else 'secondary' }}">
+                                        {{ log.status.title() }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Trip Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Start Odometer:</strong></td>
+                                <td>{{ "%.0f"|format(log.start_odometer or 0) }} km</td>
+                            </tr>
+                            <tr>
+                                <td><strong>End Odometer:</strong></td>
+                                <td>{{ "%.0f"|format(log.end_odometer or 0) }} km</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Distance:</strong></td>
+                                <td><strong>{{ "%.1f"|format(log.total_distance or 0) }} km</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fuel Consumed:</strong></td>
+                                <td><span class="text-warning">{{ "%.1f"|format(log.fuel_consumed or 0) }} L</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if log.breaks_taken or log.notes %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Additional Information</h6>
+                        <table class="table table-sm">
+                            {% if log.breaks_taken %}
+                            <tr>
+                                <td><strong>Breaks Taken:</strong></td>
+                                <td>{{ log.breaks_taken }} breaks</td>
+                            </tr>
+                            {% endif %}
+                            {% if log.notes %}
+                            <tr>
+                                <td><strong>Notes:</strong></td>
+                                <td>{{ log.notes }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Edit Log
+                </button>
+                <button type="button" class="btn btn-success">
+                    <i class="fas fa-check"></i> Complete Log
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let driverPerformanceChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeDriverCharts();
+    loadDriverAnalytics();
+    loadComplianceAlerts();
+});
+
+function initializeDriverCharts() {
+    const ctx = document.getElementById('driverPerformanceChart').getContext('2d');
+    driverPerformanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Driver 1', 'Driver 2', 'Driver 3', 'Driver 4', 'Driver 5'],
+            datasets: [{
+                label: 'Hours Worked',
+                data: [8.5, 7.2, 9.1, 6.8, 8.0],
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgb(75, 192, 192)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10
+                }
+            }
+        }
+    });
+}
+
+function loadDriverAnalytics() {
+    const logs = {{ driver_logs|tojson }};
+    const activeDrivers = new Set(logs.filter(l => l.status === 'active').map(l => l.employee_id)).size;
+    const totalHours = logs.reduce((sum, l) => {
+        if (l.start_time && l.end_time) {
+            const duration = (l.end_time.hour * 60 + l.end_time.minute) - (l.start_time.hour * 60 + l.start_time.minute);
+            return sum + duration / 60;
+        }
+        return sum;
+    }, 0);
+    const totalDistance = logs.reduce((sum, l) => sum + (l.total_distance or 0), 0);
+    const fuelConsumed = logs.reduce((sum, l) => sum + (l.fuel_consumed or 0), 0);
+    
+    document.getElementById('activeDrivers').textContent = activeDrivers;
+    document.getElementById('totalHours').textContent = totalHours.toFixed(1) + ' hrs';
+    document.getElementById('totalDistance').textContent = totalDistance.toFixed(1) + ' km';
+    document.getElementById('fuelConsumed').textContent = fuelConsumed.toFixed(1) + ' L';
+}
+
+function loadComplianceAlerts() {
+    const alerts = [
+        { type: 'warning', message: 'Driver John Smith approaching 8-hour limit', time: '2 hours ago' },
+        { type: 'danger', message: 'Driver Mike Johnson exceeded break time limit', time: '1 hour ago' },
+        { type: 'info', message: 'Driver Sarah Wilson completed required breaks', time: '3 hours ago' }
+    ];
+    
+    const container = document.getElementById('complianceAlerts');
+    container.innerHTML = '';
+    
+    alerts.forEach(alert => {
+        const div = document.createElement('div');
+        div.className = `alert alert-${alert.type} alert-dismissible fade show`;
+        div.innerHTML = `
+            <small>${alert.message}</small>
+            <br>
+            <small class="text-muted">${alert.time}</small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function addDriverLog() {
+    console.log('Adding driver log...');
+    alert('Add driver log feature will be implemented here.');
+}
+
+function exportDriverReport() {
+    console.log('Exporting driver report...');
+    alert('Driver report export feature will be implemented here.');
+}
+</script>
+{% endblock %} 

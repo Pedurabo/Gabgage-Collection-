@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}Compliance Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-shield-alt text-success"></i>
+                    Compliance & Regulatory Management
+                </h2>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-success" onclick="addComplianceRecord()">
+                        <i class="fas fa-plus"></i> Add Record
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="exportComplianceReport()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Compliance Dashboard -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Active Permits</h6>
+                                    <h3 class="mb-0" id="activePermits">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-file-contract fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Expiring Soon</h6>
+                                    <h3 class="mb-0" id="expiringSoon">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Expired</h6>
+                                    <h3 class="mb-0" id="expiredRecords">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-times-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Pending Renewals</h6>
+                                    <h3 class="mb-0" id="pendingRenewals">0</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compliance Records -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list"></i> Compliance Records
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Record Type</th>
+                                            <th>Title</th>
+                                            <th>Issue Date</th>
+                                            <th>Expiry Date</th>
+                                            <th>Status</th>
+                                            <th>Responsible Person</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for record in compliance_records %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-{{ 'primary' if record.record_type == 'permit' else 'success' if record.record_type == 'license' else 'info' }}">
+                                                    {{ record.record_type.title() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <strong>{{ record.title }}</strong>
+                                                    {% if record.description %}
+                                                    <br>
+                                                    <small class="text-muted">{{ record.description[:50] }}{% if record.description|length > 50 %}...{% endif %}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">{{ record.issue_date.strftime('%Y-%m-%d') }}</span>
+                                            </td>
+                                            <td>
+                                                {% set days_until_expiry = (record.expiry_date - today).days %}
+                                                <span class="text-{{ 'danger' if days_until_expiry < 0 else 'warning' if days_until_expiry < 30 else 'success' }}">
+                                                    {{ record.expiry_date.strftime('%Y-%m-%d') }}
+                                                    {% if days_until_expiry < 0 %}
+                                                        <br><small class="text-danger">Expired {{ abs(days_until_expiry) }} days ago</small>
+                                                    {% elif days_until_expiry < 30 %}
+                                                        <br><small class="text-warning">Expires in {{ days_until_expiry }} days</small>
+                                                    {% else %}
+                                                        <br><small class="text-success">Valid for {{ days_until_expiry }} days</small>
+                                                    {% endif %}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if record.status == 'active' else 'danger' if record.status == 'expired' else 'warning' }}">
+                                                    {{ record.status.title() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ record.responsible_person or 'Not assigned' }}</small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-info" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#complianceModal{{ record.id }}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-success">
+                                                        <i class="fas fa-download"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie"></i> Compliance Overview
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="complianceChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow mt-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bell"></i> Compliance Alerts
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="complianceAlerts">
+                                <!-- Compliance alerts will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regulatory Requirements -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-gavel"></i> Regulatory Requirements
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Environmental Compliance</h6>
+                                    <div class="list-group">
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>Waste Disposal Permit</strong>
+                                                <br>
+                                                <small class="text-muted">Required for hazardous waste disposal</small>
+                                            </div>
+                                            <span class="badge bg-success">Active</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>Air Quality Permit</strong>
+                                                <br>
+                                                <small class="text-muted">Required for incineration facilities</small>
+                                            </div>
+                                            <span class="badge bg-warning">Expiring Soon</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>Water Discharge Permit</strong>
+                                                <br>
+                                                <small class="text-muted">Required for wastewater treatment</small>
+                                            </div>
+                                            <span class="badge bg-success">Active</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Operational Compliance</h6>
+                                    <div class="list-group">
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>Vehicle Operating License</strong>
+                                                <br>
+                                                <small class="text-muted">Required for commercial vehicles</small>
+                                            </div>
+                                            <span class="badge bg-success">Active</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>Driver Safety Certification</strong>
+                                                <br>
+                                                <small class="text-muted">Required for all drivers</small>
+                                            </div>
+                                            <span class="badge bg-danger">Expired</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>Insurance Certificate</strong>
+                                                <br>
+                                                <small class="text-muted">Required for liability coverage</small>
+                                            </div>
+                                            <span class="badge bg-success">Active</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Compliance Record Detail Modals -->
+{% for record in compliance_records %}
+<div class="modal fade" id="complianceModal{{ record.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-shield-alt"></i> Compliance Record Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Record Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Type:</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ 'primary' if record.record_type == 'permit' else 'success' if record.record_type == 'license' else 'info' }}">
+                                        {{ record.record_type.title() }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Title:</strong></td>
+                                <td>{{ record.title }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if record.status == 'active' else 'danger' if record.status == 'expired' else 'warning' }}">
+                                        {{ record.status.title() }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Responsible Person:</strong></td>
+                                <td>{{ record.responsible_person or 'Not assigned' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Date Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Issue Date:</strong></td>
+                                <td>{{ record.issue_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Expiry Date:</strong></td>
+                                <td>
+                                    {% set days_until_expiry = (record.expiry_date - today).days %}
+                                    <span class="text-{{ 'danger' if days_until_expiry < 0 else 'warning' if days_until_expiry < 30 else 'success' }}">
+                                        {{ record.expiry_date.strftime('%Y-%m-%d') }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Days Remaining:</strong></td>
+                                <td>
+                                    {% if days_until_expiry < 0 %}
+                                        <span class="text-danger">Expired {{ abs(days_until_expiry) }} days ago</span>
+                                    {% elif days_until_expiry < 30 %}
+                                        <span class="text-warning">{{ days_until_expiry }} days</span>
+                                    {% else %}
+                                        <span class="text-success">{{ days_until_expiry }} days</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if record.description %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Description</h6>
+                        <p class="text-muted">{{ record.description }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if record.document_url %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Document</h6>
+                        <a href="{{ record.document_url }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="fas fa-file-pdf"></i> View Document
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Edit Record
+                </button>
+                <button type="button" class="btn btn-success">
+                    <i class="fas fa-download"></i> Download
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let complianceChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeComplianceCharts();
+    loadComplianceAnalytics();
+    loadComplianceAlerts();
+});
+
+function initializeComplianceCharts() {
+    const ctx = document.getElementById('complianceChart').getContext('2d');
+    complianceChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Expiring Soon', 'Expired', 'Pending'],
+            datasets: [{
+                data: [70, 15, 10, 5],
+                backgroundColor: [
+                    'rgb(40, 167, 69)',
+                    'rgb(255, 193, 7)',
+                    'rgb(220, 53, 69)',
+                    'rgb(23, 162, 184)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function loadComplianceAnalytics() {
+    const records = {{ compliance_records|tojson }};
+    const today = new Date();
+    
+    const activeRecords = records.filter(r => r.status === 'active').length;
+    const expiringSoon = records.filter(r => {
+        const expiryDate = new Date(r.expiry_date);
+        const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+        return daysUntilExpiry > 0 && daysUntilExpiry <= 30;
+    }).length;
+    const expiredRecords = records.filter(r => {
+        const expiryDate = new Date(r.expiry_date);
+        return expiryDate < today;
+    }).length;
+    const pendingRenewals = records.filter(r => r.status === 'pending').length;
+    
+    document.getElementById('activePermits').textContent = activeRecords;
+    document.getElementById('expiringSoon').textContent = expiringSoon;
+    document.getElementById('expiredRecords').textContent = expiredRecords;
+    document.getElementById('pendingRenewals').textContent = pendingRenewals;
+}
+
+function loadComplianceAlerts() {
+    const alerts = [
+        { type: 'danger', message: 'Driver Safety Certification expired 5 days ago', time: '1 hour ago' },
+        { type: 'warning', message: 'Air Quality Permit expires in 15 days', time: '2 hours ago' },
+        { type: 'info', message: 'Waste Disposal Permit renewed successfully', time: '1 day ago' }
+    ];
+    
+    const container = document.getElementById('complianceAlerts');
+    container.innerHTML = '';
+    
+    alerts.forEach(alert => {
+        const div = document.createElement('div');
+        div.className = `alert alert-${alert.type} alert-dismissible fade show`;
+        div.innerHTML = `
+            <small>${alert.message}</small>
+            <br>
+            <small class="text-muted">${alert.time}</small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function addComplianceRecord() {
+    console.log('Adding compliance record...');
+    alert('Add compliance record feature will be implemented here.');
+}
+
+function exportComplianceReport() {
+    console.log('Exporting compliance report...');
+    alert('Compliance report export feature will be implemented here.');
+}
+</script>
+{% endblock %} 

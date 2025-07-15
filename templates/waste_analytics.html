@@ -1,0 +1,444 @@
+{% extends "base.html" %}
+
+{% block title %}Waste Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-recycle text-success"></i>
+                    Waste Analytics & Sustainability
+                </h2>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-success" onclick="generateAnalyticsReport()">
+                        <i class="fas fa-chart-line"></i> Generate Report
+                    </button>
+                    <button class="btn btn-outline-info" onclick="exportAnalyticsData()">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sustainability Dashboard -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Waste Collected</h6>
+                                    <h3 class="mb-0" id="totalWasteCollected">0 kg</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-weight-hanging fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Recycling Rate</h6>
+                                    <h3 class="mb-0" id="recyclingRate">0%</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-recycle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Carbon Footprint</h6>
+                                    <h3 class="mb-0" id="carbonFootprint">0 kg CO2</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-leaf fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Landfill Avoided</h6>
+                                    <h3 class="mb-0" id="landfillAvoided">0 kg</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-mountain fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Charts -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line"></i> Waste Collection Trends
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="wasteTrendChart" width="800" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie"></i> Waste Type Distribution
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="wasteTypeChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow mt-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar"></i> Recycling Performance
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="recyclingChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waste Analytics Data -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-table"></i> Waste Analytics Data
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Waste Type</th>
+                                            <th>Total Weight</th>
+                                            <th>Recycling Rate</th>
+                                            <th>Disposal Cost</th>
+                                            <th>Carbon Footprint</th>
+                                            <th>Landfill Avoided</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for analytic in analytics %}
+                                        <tr>
+                                            <td>
+                                                <span class="text-muted">{{ analytic.date.strftime('%Y-%m-%d') }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if analytic.waste_type == 'organic' else 'info' if analytic.waste_type == 'recyclable' else 'warning' if analytic.waste_type == 'hazardous' else 'secondary' }}">
+                                                    {{ analytic.waste_type.title() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <strong>{{ "%.1f"|format(analytic.total_weight) }} kg</strong>
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar bg-success" 
+                                                         style="width: {{ analytic.recycling_rate or 0 }}%">
+                                                        {{ "%.1f"|format(analytic.recycling_rate or 0) }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-warning">${{ "%.2f"|format(analytic.disposal_cost or 0) }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-info">{{ "%.1f"|format(analytic.carbon_footprint or 0) }} kg CO2</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-success">{{ "%.1f"|format(analytic.landfill_avoided or 0) }} kg</span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Environmental Impact -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-leaf"></i> Environmental Impact
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="text-center mb-3">
+                                        <div class="display-4 text-success">🌱</div>
+                                        <h6>Trees Saved</h6>
+                                        <h4 class="text-success" id="treesSaved">0</h4>
+                                        <small class="text-muted">Equivalent trees preserved</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-center mb-3">
+                                        <div class="display-4 text-info">💧</div>
+                                        <h6>Water Saved</h6>
+                                        <h4 class="text-info" id="waterSaved">0 L</h4>
+                                        <small class="text-muted">Liters of water conserved</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-center mb-3">
+                                        <div class="display-4 text-warning">⚡</div>
+                                        <h6>Energy Saved</h6>
+                                        <h4 class="text-warning" id="energySaved">0 kWh</h4>
+                                        <small class="text-muted">Kilowatt-hours saved</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-center mb-3">
+                                        <div class="display-4 text-primary">🚗</div>
+                                        <h6>Car Miles Offset</h6>
+                                        <h4 class="text-primary" id="carMilesOffset">0</h4>
+                                        <small class="text-muted">Miles of driving offset</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-trophy"></i> Sustainability Achievements
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Zero Waste Goal</strong>
+                                        <br>
+                                        <small class="text-muted">Target: 90% diversion rate</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-success">75%</span>
+                                        <br>
+                                        <small class="text-muted">Current progress</small>
+                                    </div>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Carbon Neutral</strong>
+                                        <br>
+                                        <small class="text-muted">Target: Net zero emissions</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-warning">60%</span>
+                                        <br>
+                                        <small class="text-muted">Current progress</small>
+                                    </div>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Circular Economy</strong>
+                                        <br>
+                                        <small class="text-muted">Target: 100% recyclable materials</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info">85%</span>
+                                        <br>
+                                        <small class="text-muted">Current progress</small>
+                                    </div>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Green Fleet</strong>
+                                        <br>
+                                        <small class="text-muted">Target: 100% electric vehicles</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-primary">40%</span>
+                                        <br>
+                                        <small class="text-muted">Current progress</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let wasteTrendChart, wasteTypeChart, recyclingChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeWasteCharts();
+    loadWasteAnalytics();
+    calculateEnvironmentalImpact();
+});
+
+function initializeWasteCharts() {
+    // Waste Collection Trends Chart
+    const trendCtx = document.getElementById('wasteTrendChart').getContext('2d');
+    wasteTrendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Organic Waste',
+                data: [1200, 1350, 1100, 1400, 1300, 1250],
+                borderColor: 'rgb(40, 167, 69)',
+                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                tension: 0.1
+            }, {
+                label: 'Recyclable Waste',
+                data: [800, 950, 900, 1000, 950, 900],
+                borderColor: 'rgb(23, 162, 184)',
+                backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                tension: 0.1
+            }, {
+                label: 'Hazardous Waste',
+                data: [200, 250, 180, 300, 280, 220],
+                borderColor: 'rgb(255, 193, 7)',
+                backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Waste Type Distribution Chart
+    const typeCtx = document.getElementById('wasteTypeChart').getContext('2d');
+    wasteTypeChart = new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Organic', 'Recyclable', 'Hazardous', 'Other'],
+            datasets: [{
+                data: [45, 35, 15, 5],
+                backgroundColor: [
+                    'rgb(40, 167, 69)',
+                    'rgb(23, 162, 184)',
+                    'rgb(255, 193, 7)',
+                    'rgb(108, 117, 125)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Recycling Performance Chart
+    const recyclingCtx = document.getElementById('recyclingChart').getContext('2d');
+    recyclingChart = new Chart(recyclingCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Paper', 'Plastic', 'Glass', 'Metal', 'Organic'],
+            datasets: [{
+                label: 'Recycling Rate (%)',
+                data: [85, 70, 90, 95, 60],
+                backgroundColor: 'rgba(40, 167, 69, 0.6)',
+                borderColor: 'rgb(40, 167, 69)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+}
+
+function loadWasteAnalytics() {
+    const analytics = {{ analytics|tojson }};
+    
+    const totalWaste = analytics.reduce((sum, a) => sum + a.total_weight, 0);
+    const avgRecyclingRate = analytics.reduce((sum, a) => sum + (a.recycling_rate or 0), 0) / analytics.length;
+    const totalCarbonFootprint = analytics.reduce((sum, a) => sum + (a.carbon_footprint or 0), 0);
+    const totalLandfillAvoided = analytics.reduce((sum, a) => sum + (a.landfill_avoided or 0), 0);
+    
+    document.getElementById('totalWasteCollected').textContent = totalWaste.toFixed(1) + ' kg';
+    document.getElementById('recyclingRate').textContent = avgRecyclingRate.toFixed(1) + '%';
+    document.getElementById('carbonFootprint').textContent = totalCarbonFootprint.toFixed(1) + ' kg CO2';
+    document.getElementById('landfillAvoided').textContent = totalLandfillAvoided.toFixed(1) + ' kg';
+}
+
+function calculateEnvironmentalImpact() {
+    // Calculate environmental impact based on waste data
+    const totalWaste = 5000; // kg
+    const recyclingRate = 75; // %
+    
+    // Environmental impact calculations (simplified)
+    const treesSaved = Math.floor(totalWaste * recyclingRate / 100 / 100); // 1 tree per 100kg recycled
+    const waterSaved = totalWaste * recyclingRate / 100 * 10; // 10L water per kg recycled
+    const energySaved = totalWaste * recyclingRate / 100 * 2.5; // 2.5 kWh per kg recycled
+    const carMilesOffset = Math.floor(totalWaste * recyclingRate / 100 * 0.5); // 0.5 miles per kg recycled
+    
+    document.getElementById('treesSaved').textContent = treesSaved;
+    document.getElementById('waterSaved').textContent = waterSaved.toFixed(0) + ' L';
+    document.getElementById('energySaved').textContent = energySaved.toFixed(0) + ' kWh';
+    document.getElementById('carMilesOffset').textContent = carMilesOffset;
+}
+
+function generateAnalyticsReport() {
+    console.log('Generating analytics report...');
+    alert('Analytics report generation feature will be implemented here.');
+}
+
+function exportAnalyticsData() {
+    console.log('Exporting analytics data...');
+    alert('Analytics data export feature will be implemented here.');
+}
+</script>
+{% endblock %} 

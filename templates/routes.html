@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Route Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-route text-info"></i>
+                    Route Management
+                </h2>
+                <a href="{{ url_for('add_route') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Route
+                </a>
+            </div>
+
+            <!-- Route Cards -->
+            <div class="row">
+                {% for route in routes %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 shadow">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-route"></i> {{ route.name }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Description:</strong>
+                                <p class="text-muted">{{ route.description or 'No description available' }}</p>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Area Covered</small>
+                                    <div class="fw-bold">{{ route.area_covered or 'Not specified' }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Duration</small>
+                                    <div class="fw-bold">{{ route.estimated_duration or 'Not specified' }} hours</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Vehicle</small>
+                                    <div class="fw-bold">
+                                        {% if route.vehicle %}
+                                            {{ route.vehicle.vehicle_number }}
+                                        {% else %}
+                                            <span class="text-muted">Not assigned</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Driver</small>
+                                    <div class="fw-bold">
+                                        {% if route.driver %}
+                                            {{ route.driver.name }}
+                                        {% else %}
+                                            <span class="text-muted">Not assigned</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">Status</small>
+                                <div>
+                                    {% if route.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif route.status == 'inactive' %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% elif route.status == 'maintenance' %}
+                                        <span class="badge bg-warning">Maintenance</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ route.status.title() }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">Service Requests</small>
+                                <div class="fw-bold">{{ route.requests|length }} requests</div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    Created: {{ route.created_at.strftime('%Y-%m-%d') }}
+                                </small>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#routeModal{{ route.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="#" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if not routes %}
+            <div class="text-center py-5">
+                <i class="fas fa-route fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Routes Found</h4>
+                <p class="text-muted">Start by creating your first collection route.</p>
+                <a href="{{ url_for('add_route') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create First Route
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Route Detail Modals -->
+{% for route in routes %}
+<div class="modal fade" id="routeModal{{ route.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-route"></i> Route Details: {{ route.name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Route Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td>{{ route.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Description:</strong></td>
+                                <td>{{ route.description or 'No description' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Area Covered:</strong></td>
+                                <td>{{ route.area_covered or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Estimated Duration:</strong></td>
+                                <td>{{ route.estimated_duration or 'Not specified' }} hours</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if route.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif route.status == 'inactive' %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% elif route.status == 'maintenance' %}
+                                        <span class="badge bg-warning">Maintenance</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ route.status.title() }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Assigned Resources</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Vehicle:</strong></td>
+                                <td>
+                                    {% if route.vehicle %}
+                                        {{ route.vehicle.vehicle_number }} ({{ route.vehicle.vehicle_type }})
+                                    {% else %}
+                                        <span class="text-muted">Not assigned</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Driver:</strong></td>
+                                <td>
+                                    {% if route.driver %}
+                                        {{ route.driver.name }} ({{ route.driver.role }})
+                                    {% else %}
+                                        <span class="text-muted">Not assigned</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Created:</strong></td>
+                                <td>{{ route.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if route.requests %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Service Requests on This Route</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Service Type</th>
+                                        <th>Scheduled Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in route.requests %}
+                                    <tr>
+                                        <td>{{ request.customer.name }}</td>
+                                        <td>{{ request.service_type.title() }}</td>
+                                        <td>{{ request.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            {% if request.status == 'completed' %}
+                                                <span class="badge bg-success">Completed</span>
+                                            {% elif request.status == 'in_progress' %}
+                                                <span class="badge bg-warning">In Progress</span>
+                                            {% elif request.status == 'pending' %}
+                                                <span class="badge bg-secondary">Pending</span>
+                                            {% else %}
+                                                <span class="badge bg-info">{{ request.status.title() }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Edit Route
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %} 
